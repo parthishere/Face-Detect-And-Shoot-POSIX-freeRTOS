@@ -11,7 +11,7 @@ libopencv_imgproc.so.4.5d     facedetect.o (cv::putText(cv::_InputOutputArray co
 libopencv_core.so.4.5d        facedetect.o (cv::Mat::empty() const)
 libstdc++.so.6                facedetect.o (std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_S_copy_chars(char*, char const*, char const*)@@GLIBCXX_3.4.21)
 libgcc_s.so.1                 facedetect.o (_Unwind_Resume@@GCC_3.0)
-libc.so.6                     /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o (__libc_start_main@@GLIBC_2.34)
+libc.so.6                     facedetect.o (pthread_getschedparam@@GLIBC_2.2.5)
 
 Discarded input sections
 
@@ -159,6 +159,7 @@ LOAD /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/libopencv_core.s
 LOAD /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/libopencv_flann.so
 LOAD /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/libopencv_video.so
 LOAD /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/librt.a
+LOAD /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/libpthread.a
 LOAD /usr/lib/gcc/x86_64-linux-gnu/11/libstdc++.so
 LOAD /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/libm.so
 START GROUP
@@ -213,422 +214,449 @@ LOAD /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o
  *(.gnu.hash)
  .gnu.hash      0x00000000000003b0       0x44 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
 
-.dynsym         0x00000000000003f8      0x5b8
+.dynsym         0x00000000000003f8      0x7e0
  *(.dynsym)
- .dynsym        0x00000000000003f8      0x5b8 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+ .dynsym        0x00000000000003f8      0x7e0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
 
-.dynstr         0x00000000000009b0      0xa4b
+.dynstr         0x0000000000000bd8      0xb7b
  *(.dynstr)
- .dynstr        0x00000000000009b0      0xa4b /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+ .dynstr        0x0000000000000bd8      0xb7b /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
 
-.gnu.version    0x00000000000013fc       0x7a
+.gnu.version    0x0000000000001754       0xa8
  *(.gnu.version)
- .gnu.version   0x00000000000013fc       0x7a /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+ .gnu.version   0x0000000000001754       0xa8 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
 
-.gnu.version_d  0x0000000000001478        0x0
+.gnu.version_d  0x0000000000001800        0x0
  *(.gnu.version_d)
  .gnu.version_d
-                0x0000000000001478        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+                0x0000000000001800        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
 
-.gnu.version_r  0x0000000000001478       0xc0
+.gnu.version_r  0x0000000000001800       0xc0
  *(.gnu.version_r)
  .gnu.version_r
-                0x0000000000001478       0xc0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+                0x0000000000001800       0xc0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
 
-.rela.dyn       0x0000000000001538      0x150
+.rela.dyn       0x00000000000018c0      0x150
  *(.rela.init)
  *(.rela.text .rela.text.* .rela.gnu.linkonce.t.*)
  .rela.text._ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE15_M_add_ref_copyEv
-                0x0000000000001538        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+                0x00000000000018c0        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
  *(.rela.fini)
  *(.rela.rodata .rela.rodata.* .rela.gnu.linkonce.r.*)
  *(.rela.data .rela.data.* .rela.gnu.linkonce.d.*)
  .rela.data.rel.ro
-                0x0000000000001538        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+                0x00000000000018c0        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
  .rela.data.rel.local
-                0x0000000000001538       0x18 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+                0x00000000000018c0       0x18 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
  .rela.data.rel.local.DW.ref.__gxx_personality_v0
-                0x0000000000001550       0x18 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+                0x00000000000018d8       0x18 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
  *(.rela.tdata .rela.tdata.* .rela.gnu.linkonce.td.*)
  *(.rela.tbss .rela.tbss.* .rela.gnu.linkonce.tb.*)
  *(.rela.ctors)
  *(.rela.dtors)
  *(.rela.got)
- .rela.got      0x0000000000001568       0xc0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+ .rela.got      0x00000000000018f0       0xc0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
  *(.rela.bss .rela.bss.* .rela.gnu.linkonce.b.*)
- .rela.bss      0x0000000000001628       0x18 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+ .rela.bss      0x00000000000019b0       0x18 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
  *(.rela.ldata .rela.ldata.* .rela.gnu.linkonce.l.*)
  *(.rela.lbss .rela.lbss.* .rela.gnu.linkonce.lb.*)
  *(.rela.lrodata .rela.lrodata.* .rela.gnu.linkonce.lr.*)
  *(.rela.ifunc)
- .rela.ifunc    0x0000000000001640        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+ .rela.ifunc    0x00000000000019c8        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
  .rela.fini_array
-                0x0000000000001640       0x18 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+                0x00000000000019c8       0x18 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
  .rela.init_array
-                0x0000000000001658       0x30 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+                0x00000000000019e0       0x30 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
  .rela.eh_frame
-                0x0000000000001688        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+                0x0000000000001a10        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
 
-.rela.plt       0x0000000000001688      0x450
+.rela.plt       0x0000000000001a10      0x678
  *(.rela.plt)
- .rela.plt      0x0000000000001688      0x450 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+ .rela.plt      0x0000000000001a10      0x678 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
  *(.rela.iplt)
 
 .relr.dyn
  *(.relr.dyn)
-                0x0000000000002000                . = ALIGN (CONSTANT (MAXPAGESIZE))
+                0x0000000000003000                . = ALIGN (CONSTANT (MAXPAGESIZE))
 
-.init           0x0000000000002000       0x1b
+.init           0x0000000000003000       0x1b
  *(SORT_NONE(.init))
- .init          0x0000000000002000       0x16 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o
-                0x0000000000002000                _init
- .init          0x0000000000002016        0x5 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o
+ .init          0x0000000000003000       0x16 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o
+                0x0000000000003000                _init
+ .init          0x0000000000003016        0x5 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o
 
-.plt            0x0000000000002020      0x2f0
+.plt            0x0000000000003020      0x460
  *(.plt)
- .plt           0x0000000000002020      0x2f0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+ .plt           0x0000000000003020      0x460 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
  *(.iplt)
 
-.plt.got        0x0000000000002310       0x30
+.plt.got        0x0000000000003480       0x30
  *(.plt.got)
- .plt.got       0x0000000000002310       0x30 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
-                0x0000000000002310                cv::CascadeClassifier::~CascadeClassifier()
-                0x0000000000002320                std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::~basic_string()@@GLIBCXX_3.4.21
-                0x0000000000002330                __cxa_finalize@@GLIBC_2.2.5
+ .plt.got       0x0000000000003480       0x30 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+                0x0000000000003480                cv::CascadeClassifier::~CascadeClassifier()
+                0x0000000000003490                std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::~basic_string()@@GLIBCXX_3.4.21
+                0x00000000000034a0                __cxa_finalize@@GLIBC_2.2.5
 
-.plt.sec        0x0000000000002340      0x2e0
+.plt.sec        0x00000000000034b0      0x450
  *(.plt.sec)
- .plt.sec       0x0000000000002340      0x2e0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
-                0x0000000000002340                cv::imshow(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, cv::_InputArray const&)
-                0x0000000000002350                std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_data() const@@GLIBCXX_3.4.21
-                0x0000000000002360                cv::rectangle(cv::_InputOutputArray const&, cv::Point_<int>, cv::Point_<int>, cv::Scalar_<double> const&, int, int, int)
-                0x0000000000002370                cv::Mat::Mat()
-                0x0000000000002380                __stack_chk_fail@@GLIBC_2.4
-                0x0000000000002390                cv::Mat::~Mat()
-                0x00000000000023a0                std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::operator=(char const*)@@GLIBCXX_3.4.21
-                0x00000000000023b0                cv::VideoCapture::operator>>(cv::Mat&)
-                0x00000000000023c0                cv::CascadeClassifier::load(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
-                0x00000000000023d0                __cxa_atexit@@GLIBC_2.2.5
-                0x00000000000023e0                std::allocator<char>::~allocator()@@GLIBCXX_3.4
-                0x00000000000023f0                std::allocator<char>::allocator()@@GLIBCXX_3.4
-                0x0000000000002400                std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_Alloc_hider::_Alloc_hider(char*, std::allocator<char> const&)@@GLIBCXX_3.4.21
-                0x0000000000002410                std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_S_copy_chars(char*, char const*, char const*)@@GLIBCXX_3.4.21
-                0x0000000000002420                cv::cvtColor(cv::_InputArray const&, cv::_OutputArray const&, int, int)
-                0x0000000000002430                cv::Mat::empty() const
-                0x0000000000002440                cv::VideoCapture::~VideoCapture()
-                0x0000000000002450                std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()@@GLIBCXX_3.4.21
-                0x0000000000002460                puts@@GLIBC_2.2.5
-                0x0000000000002470                cv::format[abi:cxx11](char const*, ...)
-                0x0000000000002480                cv::CascadeClassifier::CascadeClassifier()
-                0x0000000000002490                cv::VideoCapture::open(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, int)
-                0x00000000000024a0                cv::VideoCapture::VideoCapture()
-                0x00000000000024b0                __cxa_begin_catch@@CXXABI_1.3
-                0x00000000000024c0                cv::putText(cv::_InputOutputArray const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, cv::Point_<int>, int, double, cv::Scalar_<double>, int, int, bool)
-                0x00000000000024d0                operator delete(void*, unsigned long)@@CXXABI_1.3.9
-                0x00000000000024e0                std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_local_data()@@GLIBCXX_3.4.21
-                0x00000000000024f0                strlen@@GLIBC_2.2.5
-                0x0000000000002500                _Unwind_Resume@@GCC_3.0
-                0x0000000000002510                std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_create(unsigned long&, unsigned long)@@GLIBCXX_3.4.21
-                0x0000000000002520                cv::getTickCount()
-                0x0000000000002530                std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_capacity(unsigned long)@@GLIBCXX_3.4.21
-                0x0000000000002540                std::__throw_logic_error(char const*)@@GLIBCXX_3.4
-                0x0000000000002550                std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_data(char*)@@GLIBCXX_3.4.21
-                0x0000000000002560                cv::getTickFrequency()
-                0x0000000000002570                cv::CascadeClassifier::detectMultiScale(cv::_InputArray const&, std::vector<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >&, double, int, int, cv::Size_<int>, cv::Size_<int>)
-                0x0000000000002580                std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string()@@GLIBCXX_3.4.21
-                0x0000000000002590                __cxa_end_catch@@CXXABI_1.3
-                0x00000000000025a0                __cxa_rethrow@@CXXABI_1.3
-                0x00000000000025b0                cv::waitKey(int)
-                0x00000000000025c0                cv::destroyAllWindows()
-                0x00000000000025d0                std::ios_base::Init::Init()@@GLIBCXX_3.4
-                0x00000000000025e0                cv::resize(cv::_InputArray const&, cv::_OutputArray const&, cv::Size_<int>, double, double, int)
-                0x00000000000025f0                std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_set_length(unsigned long)@@GLIBCXX_3.4.21
-                0x0000000000002600                cv::VideoCapture::open(int, int)
-                0x0000000000002610                std::allocator<char>::~allocator()@@GLIBCXX_3.4
+ .plt.sec       0x00000000000034b0      0x450 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+                0x00000000000034b0                cv::imshow(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, cv::_InputArray const&)
+                0x00000000000034c0                std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_data() const@@GLIBCXX_3.4.21
+                0x00000000000034d0                get_nprocs_conf@@GLIBC_2.2.5
+                0x00000000000034e0                cv::rectangle(cv::_InputOutputArray const&, cv::Point_<int>, cv::Point_<int>, cv::Scalar_<double> const&, int, int, int)
+                0x00000000000034f0                cv::Mat::Mat()
+                0x0000000000003500                __stack_chk_fail@@GLIBC_2.4
+                0x0000000000003510                cv::Mat::~Mat()
+                0x0000000000003520                std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::operator=(char const*)@@GLIBCXX_3.4.21
+                0x0000000000003530                cv::VideoCapture::operator>>(cv::Mat&)
+                0x0000000000003540                pthread_self@@GLIBC_2.2.5
+                0x0000000000003550                pthread_attr_setinheritsched@@GLIBC_2.2.5
+                0x0000000000003560                cv::CascadeClassifier::load(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+                0x0000000000003570                __cxa_atexit@@GLIBC_2.2.5
+                0x0000000000003580                std::allocator<char>::~allocator()@@GLIBCXX_3.4
+                0x0000000000003590                std::allocator<char>::allocator()@@GLIBCXX_3.4
+                0x00000000000035a0                get_nprocs@@GLIBC_2.2.5
+                0x00000000000035b0                sched_setscheduler@@GLIBC_2.2.5
+                0x00000000000035c0                pthread_create@@GLIBC_2.34
+                0x00000000000035d0                std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_Alloc_hider::_Alloc_hider(char*, std::allocator<char> const&)@@GLIBCXX_3.4.21
+                0x00000000000035e0                std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_S_copy_chars(char*, char const*, char const*)@@GLIBCXX_3.4.21
+                0x00000000000035f0                cv::cvtColor(cv::_InputArray const&, cv::_OutputArray const&, int, int)
+                0x0000000000003600                printf@@GLIBC_2.2.5
+                0x0000000000003610                sched_get_priority_max@@GLIBC_2.2.5
+                0x0000000000003620                sched_get_priority_min@@GLIBC_2.2.5
+                0x0000000000003630                gettimeofday@@GLIBC_2.2.5
+                0x0000000000003640                pthread_attr_setschedparam@@GLIBC_2.2.5
+                0x0000000000003650                cv::Mat::empty() const
+                0x0000000000003660                cv::VideoCapture::~VideoCapture()
+                0x0000000000003670                std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()@@GLIBCXX_3.4.21
+                0x0000000000003680                sched_getscheduler@@GLIBC_2.2.5
+                0x0000000000003690                puts@@GLIBC_2.2.5
+                0x00000000000036a0                cv::format[abi:cxx11](char const*, ...)
+                0x00000000000036b0                cv::CascadeClassifier::CascadeClassifier()
+                0x00000000000036c0                sleep@@GLIBC_2.2.5
+                0x00000000000036d0                pthread_attr_setaffinity_np@@GLIBC_2.32
+                0x00000000000036e0                getpid@@GLIBC_2.2.5
+                0x00000000000036f0                cv::VideoCapture::VideoCapture()
+                0x0000000000003700                __cxa_begin_catch@@CXXABI_1.3
+                0x0000000000003710                cv::putText(cv::_InputOutputArray const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, cv::Point_<int>, int, double, cv::Scalar_<double>, int, int, bool)
+                0x0000000000003720                operator delete(void*, unsigned long)@@CXXABI_1.3.9
+                0x0000000000003730                pthread_join@@GLIBC_2.34
+                0x0000000000003740                std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_local_data()@@GLIBCXX_3.4.21
+                0x0000000000003750                strlen@@GLIBC_2.2.5
+                0x0000000000003760                sem_destroy@@GLIBC_2.34
+                0x0000000000003770                _Unwind_Resume@@GCC_3.0
+                0x0000000000003780                std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_create(unsigned long&, unsigned long)@@GLIBCXX_3.4.21
+                0x0000000000003790                cv::getTickCount()
+                0x00000000000037a0                std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_capacity(unsigned long)@@GLIBCXX_3.4.21
+                0x00000000000037b0                std::__throw_logic_error(char const*)@@GLIBCXX_3.4
+                0x00000000000037c0                pthread_attr_init@@GLIBC_2.2.5
+                0x00000000000037d0                sem_init@@GLIBC_2.34
+                0x00000000000037e0                std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_data(char*)@@GLIBCXX_3.4.21
+                0x00000000000037f0                cv::getTickFrequency()
+                0x0000000000003800                perror@@GLIBC_2.2.5
+                0x0000000000003810                cv::CascadeClassifier::detectMultiScale(cv::_InputArray const&, std::vector<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >&, double, int, int, cv::Size_<int>, cv::Size_<int>)
+                0x0000000000003820                std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string()@@GLIBCXX_3.4.21
+                0x0000000000003830                exit@@GLIBC_2.2.5
+                0x0000000000003840                pthread_attr_destroy@@GLIBC_2.2.5
+                0x0000000000003850                __cxa_end_catch@@CXXABI_1.3
+                0x0000000000003860                __cxa_rethrow@@CXXABI_1.3
+                0x0000000000003870                cv::waitKey(int)
+                0x0000000000003880                pthread_getschedparam@@GLIBC_2.2.5
+                0x0000000000003890                cv::destroyAllWindows()
+                0x00000000000038a0                std::ios_base::Init::Init()@@GLIBCXX_3.4
+                0x00000000000038b0                cv::resize(cv::_InputArray const&, cv::_OutputArray const&, cv::Size_<int>, double, double, int)
+                0x00000000000038c0                std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_set_length(unsigned long)@@GLIBCXX_3.4.21
+                0x00000000000038d0                cv::VideoCapture::open(int, int)
+                0x00000000000038e0                pthread_attr_setschedpolicy@@GLIBC_2.2.5
+                0x00000000000038f0                std::allocator<char>::~allocator()@@GLIBCXX_3.4
 
-.text           0x0000000000002620     0x1745
+.text           0x0000000000003900     0x1f9f
  *(.text.unlikely .text.*_unlikely .text.unlikely.*)
  *(.text.exit .text.exit.*)
  *(.text.startup .text.startup.*)
  *(.text.hot .text.hot.*)
  *(SORT_BY_NAME(.text.sorted.*))
  *(.text .stub .text.* .gnu.linkonce.t.*)
- .text          0x0000000000002620       0x26 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
-                0x0000000000002620                _start
- .text          0x0000000000002646        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o
- *fill*         0x0000000000002646        0xa 
- .text          0x0000000000002650       0xb9 /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o
- .text          0x0000000000002709      0xb94 facedetect.o
-                0x0000000000002709                detectFaceOpenCVHaar(cv::CascadeClassifier, cv::Mat&, int, int)
-                0x0000000000002ce9                main
+ .text          0x0000000000003900       0x26 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+                0x0000000000003900                _start
+ .text          0x0000000000003926        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o
+ *fill*         0x0000000000003926        0xa 
+ .text          0x0000000000003930       0xb9 /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o
+ .text          0x00000000000039e9     0x13ef facedetect.o
+                0x00000000000039e9                read_time(double*)
+                0x0000000000003a9d                detectFaceOpenCVHaar(cv::CascadeClassifier, cv::Mat&, int, int)
+                0x000000000000407d                FaceDetectService(void*)
+                0x00000000000044bd                ServoActuatorService(void*)
+                0x0000000000004532                ServoShootService(void*)
+                0x00000000000045a7                print_scheduler()
+                0x0000000000004620                main
  .text._ZNSt11char_traitsIcE6lengthEPKc
-                0x000000000000329d       0x3e facedetect.o
-                0x000000000000329d                std::char_traits<char>::length(char const*)
- *fill*         0x00000000000032db        0x1 
+                0x0000000000004dd8       0x3e facedetect.o
+                0x0000000000004dd8                std::char_traits<char>::length(char const*)
  .text._ZN2cv11_InputArray4initEiPKv
-                0x00000000000032dc       0x2b facedetect.o
-                0x00000000000032dc                cv::_InputArray::init(int, void const*)
- *fill*         0x0000000000003307        0x1 
+                0x0000000000004e16       0x2b facedetect.o
+                0x0000000000004e16                cv::_InputArray::init(int, void const*)
+ *fill*         0x0000000000004e41        0x1 
  .text._ZN2cv11_InputArrayC2Ev
-                0x0000000000003308       0x39 facedetect.o
-                0x0000000000003308                cv::_InputArray::_InputArray()
-                0x0000000000003308                cv::_InputArray::_InputArray()
- *fill*         0x0000000000003341        0x1 
+                0x0000000000004e42       0x39 facedetect.o
+                0x0000000000004e42                cv::_InputArray::_InputArray()
+                0x0000000000004e42                cv::_InputArray::_InputArray()
+ *fill*         0x0000000000004e7b        0x1 
  .text._ZN2cv11_InputArrayC2ERKNS_3MatE
-                0x0000000000003342       0x3c facedetect.o
-                0x0000000000003342                cv::_InputArray::_InputArray(cv::Mat const&)
-                0x0000000000003342                cv::_InputArray::_InputArray(cv::Mat const&)
+                0x0000000000004e7c       0x3c facedetect.o
+                0x0000000000004e7c                cv::_InputArray::_InputArray(cv::Mat const&)
+                0x0000000000004e7c                cv::_InputArray::_InputArray(cv::Mat const&)
  .text._ZN2cv11_InputArrayD2Ev
-                0x000000000000337e        0xf facedetect.o
-                0x000000000000337e                cv::_InputArray::~_InputArray()
-                0x000000000000337e                cv::_InputArray::~_InputArray()
- *fill*         0x000000000000338d        0x1 
+                0x0000000000004eb8        0xf facedetect.o
+                0x0000000000004eb8                cv::_InputArray::~_InputArray()
+                0x0000000000004eb8                cv::_InputArray::~_InputArray()
+ *fill*         0x0000000000004ec7        0x1 
  .text._ZN2cv12_OutputArrayC2Ev
-                0x000000000000338e       0x35 facedetect.o
-                0x000000000000338e                cv::_OutputArray::_OutputArray()
-                0x000000000000338e                cv::_OutputArray::_OutputArray()
- *fill*         0x00000000000033c3        0x1 
+                0x0000000000004ec8       0x35 facedetect.o
+                0x0000000000004ec8                cv::_OutputArray::_OutputArray()
+                0x0000000000004ec8                cv::_OutputArray::_OutputArray()
+ *fill*         0x0000000000004efd        0x1 
  .text._ZN2cv12_OutputArrayC2ERNS_3MatE
-                0x00000000000033c4       0x38 facedetect.o
-                0x00000000000033c4                cv::_OutputArray::_OutputArray(cv::Mat&)
-                0x00000000000033c4                cv::_OutputArray::_OutputArray(cv::Mat&)
+                0x0000000000004efe       0x38 facedetect.o
+                0x0000000000004efe                cv::_OutputArray::_OutputArray(cv::Mat&)
+                0x0000000000004efe                cv::_OutputArray::_OutputArray(cv::Mat&)
  .text._ZN2cv12_OutputArrayD2Ev
-                0x00000000000033fc       0x1f facedetect.o
-                0x00000000000033fc                cv::_OutputArray::~_OutputArray()
-                0x00000000000033fc                cv::_OutputArray::~_OutputArray()
- *fill*         0x000000000000341b        0x1 
+                0x0000000000004f36       0x1f facedetect.o
+                0x0000000000004f36                cv::_OutputArray::~_OutputArray()
+                0x0000000000004f36                cv::_OutputArray::~_OutputArray()
+ *fill*         0x0000000000004f55        0x1 
  .text._ZN2cv17_InputOutputArrayC2ERNS_3MatE
-                0x000000000000341c       0x38 facedetect.o
-                0x000000000000341c                cv::_InputOutputArray::_InputOutputArray(cv::Mat&)
-                0x000000000000341c                cv::_InputOutputArray::_InputOutputArray(cv::Mat&)
+                0x0000000000004f56       0x38 facedetect.o
+                0x0000000000004f56                cv::_InputOutputArray::_InputOutputArray(cv::Mat&)
+                0x0000000000004f56                cv::_InputOutputArray::_InputOutputArray(cv::Mat&)
  .text._ZNSt12_Vector_baseIN2cv5Rect_IiEESaIS2_EE12_Vector_implD2Ev
-                0x0000000000003454       0x1f facedetect.o
-                0x0000000000003454                std::_Vector_base<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::_Vector_impl::~_Vector_impl()
-                0x0000000000003454                std::_Vector_base<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::_Vector_impl::~_Vector_impl()
- *fill*         0x0000000000003473        0x1 
+                0x0000000000004f8e       0x1f facedetect.o
+                0x0000000000004f8e                std::_Vector_base<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::_Vector_impl::~_Vector_impl()
+                0x0000000000004f8e                std::_Vector_base<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::_Vector_impl::~_Vector_impl()
+ *fill*         0x0000000000004fad        0x1 
  .text._ZNSt12_Vector_baseIN2cv5Rect_IiEESaIS2_EEC2Ev
-                0x0000000000003474       0x1f facedetect.o
-                0x0000000000003474                std::_Vector_base<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::_Vector_base()
-                0x0000000000003474                std::_Vector_base<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::_Vector_base()
- *fill*         0x0000000000003493        0x1 
+                0x0000000000004fae       0x1f facedetect.o
+                0x0000000000004fae                std::_Vector_base<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::_Vector_base()
+                0x0000000000004fae                std::_Vector_base<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::_Vector_base()
+ *fill*         0x0000000000004fcd        0x1 
  .text._ZNSt6vectorIN2cv5Rect_IiEESaIS2_EEC2Ev
-                0x0000000000003494       0x1f facedetect.o
-                0x0000000000003494                std::vector<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::vector()
-                0x0000000000003494                std::vector<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::vector()
- *fill*         0x00000000000034b3        0x1 
+                0x0000000000004fce       0x1f facedetect.o
+                0x0000000000004fce                std::vector<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::vector()
+                0x0000000000004fce                std::vector<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::vector()
+ *fill*         0x0000000000004fed        0x1 
  .text._ZN2cv17_InputOutputArrayD2Ev
-                0x00000000000034b4       0x1f facedetect.o
-                0x00000000000034b4                cv::_InputOutputArray::~_InputOutputArray()
-                0x00000000000034b4                cv::_InputOutputArray::~_InputOutputArray()
- *fill*         0x00000000000034d3        0x1 
+                0x0000000000004fee       0x1f facedetect.o
+                0x0000000000004fee                cv::_InputOutputArray::~_InputOutputArray()
+                0x0000000000004fee                cv::_InputOutputArray::~_InputOutputArray()
+ *fill*         0x000000000000500d        0x1 
  .text._ZN2cv17CascadeClassifierC2ERKS0_
-                0x00000000000034d4       0x2a facedetect.o
-                0x00000000000034d4                cv::CascadeClassifier::CascadeClassifier(cv::CascadeClassifier const&)
-                0x00000000000034d4                cv::CascadeClassifier::CascadeClassifier(cv::CascadeClassifier const&)
+                0x000000000000500e       0x2a facedetect.o
+                0x000000000000500e                cv::CascadeClassifier::CascadeClassifier(cv::CascadeClassifier const&)
+                0x000000000000500e                cv::CascadeClassifier::CascadeClassifier(cv::CascadeClassifier const&)
  .text._ZN9__gnu_cxx11char_traitsIcE2eqERKcS3_
-                0x00000000000034fe       0x25 facedetect.o
-                0x00000000000034fe                __gnu_cxx::char_traits<char>::eq(char const&, char const&)
- *fill*         0x0000000000003523        0x1 
+                0x0000000000005038       0x25 facedetect.o
+                0x0000000000005038                __gnu_cxx::char_traits<char>::eq(char const&, char const&)
+ *fill*         0x000000000000505d        0x1 
  .text._ZN9__gnu_cxx11char_traitsIcE6lengthEPKc
-                0x0000000000003524       0x6d facedetect.o
-                0x0000000000003524                __gnu_cxx::char_traits<char>::length(char const*)
- *fill*         0x0000000000003591        0x1 
+                0x000000000000505e       0x6d facedetect.o
+                0x000000000000505e                __gnu_cxx::char_traits<char>::length(char const*)
+ *fill*         0x00000000000050cb        0x1 
  .text._ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE12_Alloc_hiderD2Ev
-                0x0000000000003592       0x1f facedetect.o
-                0x0000000000003592                std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_Alloc_hider::~_Alloc_hider()
-                0x0000000000003592                std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_Alloc_hider::~_Alloc_hider()
- *fill*         0x00000000000035b1        0x1 
+                0x00000000000050cc       0x1f facedetect.o
+                0x00000000000050cc                std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_Alloc_hider::~_Alloc_hider()
+                0x00000000000050cc                std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_Alloc_hider::~_Alloc_hider()
+ *fill*         0x00000000000050eb        0x1 
  .text._ZN2cv5Size_IiEC2Ev
-                0x00000000000035b2       0x24 facedetect.o
-                0x00000000000035b2                cv::Size_<int>::Size_()
-                0x00000000000035b2                cv::Size_<int>::Size_()
+                0x00000000000050ec       0x24 facedetect.o
+                0x00000000000050ec                cv::Size_<int>::Size_()
+                0x00000000000050ec                cv::Size_<int>::Size_()
  .text._ZN2cv5Size_IiEC2Eii
-                0x00000000000035d6       0x28 facedetect.o
-                0x00000000000035d6                cv::Size_<int>::Size_(int, int)
-                0x00000000000035d6                cv::Size_<int>::Size_(int, int)
+                0x0000000000005110       0x28 facedetect.o
+                0x0000000000005110                cv::Size_<int>::Size_(int, int)
+                0x0000000000005110                cv::Size_<int>::Size_(int, int)
  .text._ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEC2IS3_EEPKcRKS3_
-                0x00000000000035fe       0xc3 facedetect.o
-                0x00000000000035fe                std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string<std::allocator<char> >(char const*, std::allocator<char> const&)
-                0x00000000000035fe                std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string<std::allocator<char> >(char const*, std::allocator<char> const&)
- *fill*         0x00000000000036c1        0x1 
+                0x0000000000005138       0xc3 facedetect.o
+                0x0000000000005138                std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string<std::allocator<char> >(char const*, std::allocator<char> const&)
+                0x0000000000005138                std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string<std::allocator<char> >(char const*, std::allocator<char> const&)
+ *fill*         0x00000000000051fb        0x1 
  .text._ZN2cv6Point_IiEC2Eii
-                0x00000000000036c2       0x28 facedetect.o
-                0x00000000000036c2                cv::Point_<int>::Point_(int, int)
-                0x00000000000036c2                cv::Point_<int>::Point_(int, int)
+                0x00000000000051fc       0x28 facedetect.o
+                0x00000000000051fc                cv::Point_<int>::Point_(int, int)
+                0x00000000000051fc                cv::Point_<int>::Point_(int, int)
  .text._ZNSt12_Vector_baseIN2cv5Rect_IiEESaIS2_EE12_Vector_implC2Ev
-                0x00000000000036ea       0x2b facedetect.o
-                0x00000000000036ea                std::_Vector_base<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::_Vector_impl::_Vector_impl()
-                0x00000000000036ea                std::_Vector_base<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::_Vector_impl::_Vector_impl()
- *fill*         0x0000000000003715        0x1 
+                0x0000000000005224       0x2b facedetect.o
+                0x0000000000005224                std::_Vector_base<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::_Vector_impl::_Vector_impl()
+                0x0000000000005224                std::_Vector_base<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::_Vector_impl::_Vector_impl()
+ *fill*         0x000000000000524f        0x1 
  .text._ZNSaIN2cv5Rect_IiEEED2Ev
-                0x0000000000003716       0x1f facedetect.o
-                0x0000000000003716                std::allocator<cv::Rect_<int> >::~allocator()
-                0x0000000000003716                std::allocator<cv::Rect_<int> >::~allocator()
- *fill*         0x0000000000003735        0x1 
+                0x0000000000005250       0x1f facedetect.o
+                0x0000000000005250                std::allocator<cv::Rect_<int> >::~allocator()
+                0x0000000000005250                std::allocator<cv::Rect_<int> >::~allocator()
+ *fill*         0x000000000000526f        0x1 
  .text._ZNSt12_Vector_baseIN2cv5Rect_IiEESaIS2_EED2Ev
-                0x0000000000003736       0x51 facedetect.o
-                0x0000000000003736                std::_Vector_base<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::~_Vector_base()
-                0x0000000000003736                std::_Vector_base<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::~_Vector_base()
- *fill*         0x0000000000003787        0x1 
+                0x0000000000005270       0x51 facedetect.o
+                0x0000000000005270                std::_Vector_base<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::~_Vector_base()
+                0x0000000000005270                std::_Vector_base<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::~_Vector_base()
+ *fill*         0x00000000000052c1        0x1 
  .text._ZNSt6vectorIN2cv5Rect_IiEESaIS2_EED2Ev
-                0x0000000000003788       0x48 facedetect.o
-                0x0000000000003788                std::vector<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::~vector()
-                0x0000000000003788                std::vector<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::~vector()
+                0x00000000000052c2       0x48 facedetect.o
+                0x00000000000052c2                std::vector<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::~vector()
+                0x00000000000052c2                std::vector<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::~vector()
  .text._ZNKSt6vectorIN2cv5Rect_IiEESaIS2_EE4sizeEv
-                0x00000000000037d0       0x27 facedetect.o
-                0x00000000000037d0                std::vector<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::size() const
- *fill*         0x00000000000037f7        0x1 
+                0x000000000000530a       0x27 facedetect.o
+                0x000000000000530a                std::vector<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::size() const
+ *fill*         0x0000000000005331        0x1 
  .text._ZNSt6vectorIN2cv5Rect_IiEESaIS2_EEixEm
-                0x00000000000037f8       0x24 facedetect.o
-                0x00000000000037f8                std::vector<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::operator[](unsigned long)
+                0x0000000000005332       0x24 facedetect.o
+                0x0000000000005332                std::vector<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::operator[](unsigned long)
  .text._ZN2cv7Scalar_IdEC2Edddd
-                0x000000000000381c       0x6a facedetect.o
-                0x000000000000381c                cv::Scalar_<double>::Scalar_(double, double, double, double)
-                0x000000000000381c                cv::Scalar_<double>::Scalar_(double, double, double, double)
+                0x0000000000005356       0x6a facedetect.o
+                0x0000000000005356                cv::Scalar_<double>::Scalar_(double, double, double, double)
+                0x0000000000005356                cv::Scalar_<double>::Scalar_(double, double, double, double)
  .text._ZNSt12__shared_ptrIN2cv21BaseCascadeClassifierELN9__gnu_cxx12_Lock_policyE2EEC2ERKS4_
-                0x0000000000003886       0x40 facedetect.o
-                0x0000000000003886                std::__shared_ptr<cv::BaseCascadeClassifier, (__gnu_cxx::_Lock_policy)2>::__shared_ptr(std::__shared_ptr<cv::BaseCascadeClassifier, (__gnu_cxx::_Lock_policy)2> const&)
-                0x0000000000003886                std::__shared_ptr<cv::BaseCascadeClassifier, (__gnu_cxx::_Lock_policy)2>::__shared_ptr(std::__shared_ptr<cv::BaseCascadeClassifier, (__gnu_cxx::_Lock_policy)2> const&)
+                0x00000000000053c0       0x40 facedetect.o
+                0x00000000000053c0                std::__shared_ptr<cv::BaseCascadeClassifier, (__gnu_cxx::_Lock_policy)2>::__shared_ptr(std::__shared_ptr<cv::BaseCascadeClassifier, (__gnu_cxx::_Lock_policy)2> const&)
+                0x00000000000053c0                std::__shared_ptr<cv::BaseCascadeClassifier, (__gnu_cxx::_Lock_policy)2>::__shared_ptr(std::__shared_ptr<cv::BaseCascadeClassifier, (__gnu_cxx::_Lock_policy)2> const&)
  .text._ZNSt10shared_ptrIN2cv21BaseCascadeClassifierEEC2ERKS2_
-                0x00000000000038c6       0x2a facedetect.o
-                0x00000000000038c6                std::shared_ptr<cv::BaseCascadeClassifier>::shared_ptr(std::shared_ptr<cv::BaseCascadeClassifier> const&)
-                0x00000000000038c6                std::shared_ptr<cv::BaseCascadeClassifier>::shared_ptr(std::shared_ptr<cv::BaseCascadeClassifier> const&)
+                0x0000000000005400       0x2a facedetect.o
+                0x0000000000005400                std::shared_ptr<cv::BaseCascadeClassifier>::shared_ptr(std::shared_ptr<cv::BaseCascadeClassifier> const&)
+                0x0000000000005400                std::shared_ptr<cv::BaseCascadeClassifier>::shared_ptr(std::shared_ptr<cv::BaseCascadeClassifier> const&)
  .text._ZN2cv3PtrINS_21BaseCascadeClassifierEEC2ERKS2_
-                0x00000000000038f0       0x2a facedetect.o
-                0x00000000000038f0                cv::Ptr<cv::BaseCascadeClassifier>::Ptr(cv::Ptr<cv::BaseCascadeClassifier> const&)
-                0x00000000000038f0                cv::Ptr<cv::BaseCascadeClassifier>::Ptr(cv::Ptr<cv::BaseCascadeClassifier> const&)
+                0x000000000000542a       0x2a facedetect.o
+                0x000000000000542a                cv::Ptr<cv::BaseCascadeClassifier>::Ptr(cv::Ptr<cv::BaseCascadeClassifier> const&)
+                0x000000000000542a                cv::Ptr<cv::BaseCascadeClassifier>::Ptr(cv::Ptr<cv::BaseCascadeClassifier> const&)
  .text._ZN2cv3VecIdLi4EEC2Ev
-                0x000000000000391a       0x1f facedetect.o
-                0x000000000000391a                cv::Vec<double, 4>::Vec()
-                0x000000000000391a                cv::Vec<double, 4>::Vec()
+                0x0000000000005454       0x1f facedetect.o
+                0x0000000000005454                cv::Vec<double, 4>::Vec()
+                0x0000000000005454                cv::Vec<double, 4>::Vec()
  .text._ZSt8distanceIPKcENSt15iterator_traitsIT_E15difference_typeES3_S3_
-                0x0000000000003939       0x35 facedetect.o
-                0x0000000000003939                std::iterator_traits<char const*>::difference_type std::distance<char const*>(char const*, char const*)
+                0x0000000000005473       0x35 facedetect.o
+                0x0000000000005473                std::iterator_traits<char const*>::difference_type std::distance<char const*>(char const*, char const*)
  .text._ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE12_M_constructIPKcEEvT_S8_St20forward_iterator_tag
-                0x000000000000396e      0x145 facedetect.o
-                0x000000000000396e                void std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_construct<char const*>(char const*, char const*, std::forward_iterator_tag)
- *fill*         0x0000000000003ab3        0x1 
+                0x00000000000054a8      0x145 facedetect.o
+                0x00000000000054a8                void std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_construct<char const*>(char const*, char const*, std::forward_iterator_tag)
+ *fill*         0x00000000000055ed        0x1 
  .text._ZNSaIN2cv5Rect_IiEEEC2Ev
-                0x0000000000003ab4       0x1f facedetect.o
-                0x0000000000003ab4                std::allocator<cv::Rect_<int> >::allocator()
-                0x0000000000003ab4                std::allocator<cv::Rect_<int> >::allocator()
- *fill*         0x0000000000003ad3        0x1 
+                0x00000000000055ee       0x1f facedetect.o
+                0x00000000000055ee                std::allocator<cv::Rect_<int> >::allocator()
+                0x00000000000055ee                std::allocator<cv::Rect_<int> >::allocator()
+ *fill*         0x000000000000560d        0x1 
  .text._ZNSt12_Vector_baseIN2cv5Rect_IiEESaIS2_EE17_Vector_impl_dataC2Ev
-                0x0000000000003ad4       0x32 facedetect.o
-                0x0000000000003ad4                std::_Vector_base<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::_Vector_impl_data::_Vector_impl_data()
-                0x0000000000003ad4                std::_Vector_base<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::_Vector_impl_data::_Vector_impl_data()
+                0x000000000000560e       0x32 facedetect.o
+                0x000000000000560e                std::_Vector_base<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::_Vector_impl_data::_Vector_impl_data()
+                0x000000000000560e                std::_Vector_base<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::_Vector_impl_data::_Vector_impl_data()
  .text._ZN9__gnu_cxx13new_allocatorIN2cv5Rect_IiEEED2Ev
-                0x0000000000003b06        0xf facedetect.o
-                0x0000000000003b06                __gnu_cxx::new_allocator<cv::Rect_<int> >::~new_allocator()
-                0x0000000000003b06                __gnu_cxx::new_allocator<cv::Rect_<int> >::~new_allocator()
- *fill*         0x0000000000003b15        0x1 
+                0x0000000000005640        0xf facedetect.o
+                0x0000000000005640                __gnu_cxx::new_allocator<cv::Rect_<int> >::~new_allocator()
+                0x0000000000005640                __gnu_cxx::new_allocator<cv::Rect_<int> >::~new_allocator()
+ *fill*         0x000000000000564f        0x1 
  .text._ZNSt12_Vector_baseIN2cv5Rect_IiEESaIS2_EE13_M_deallocateEPS2_m
-                0x0000000000003b16       0x39 facedetect.o
-                0x0000000000003b16                std::_Vector_base<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::_M_deallocate(cv::Rect_<int>*, unsigned long)
- *fill*         0x0000000000003b4f        0x1 
+                0x0000000000005650       0x39 facedetect.o
+                0x0000000000005650                std::_Vector_base<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::_M_deallocate(cv::Rect_<int>*, unsigned long)
+ *fill*         0x0000000000005689        0x1 
  .text._ZNSt12_Vector_baseIN2cv5Rect_IiEESaIS2_EE19_M_get_Tp_allocatorEv
-                0x0000000000003b50       0x12 facedetect.o
-                0x0000000000003b50                std::_Vector_base<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::_M_get_Tp_allocator()
+                0x000000000000568a       0x12 facedetect.o
+                0x000000000000568a                std::_Vector_base<cv::Rect_<int>, std::allocator<cv::Rect_<int> > >::_M_get_Tp_allocator()
  .text._ZSt8_DestroyIPN2cv5Rect_IiEES2_EvT_S4_RSaIT0_E
-                0x0000000000003b62       0x2e facedetect.o
-                0x0000000000003b62                void std::_Destroy<cv::Rect_<int>*, cv::Rect_<int> >(cv::Rect_<int>*, cv::Rect_<int>*, std::allocator<cv::Rect_<int> >&)
+                0x000000000000569c       0x2e facedetect.o
+                0x000000000000569c                void std::_Destroy<cv::Rect_<int>*, cv::Rect_<int> >(cv::Rect_<int>*, cv::Rect_<int>*, std::allocator<cv::Rect_<int> >&)
  .text._ZNSt14__shared_countILN9__gnu_cxx12_Lock_policyE2EEC2ERKS2_
-                0x0000000000003b90       0x40 facedetect.o
-                0x0000000000003b90                std::__shared_count<(__gnu_cxx::_Lock_policy)2>::__shared_count(std::__shared_count<(__gnu_cxx::_Lock_policy)2> const&)
-                0x0000000000003b90                std::__shared_count<(__gnu_cxx::_Lock_policy)2>::__shared_count(std::__shared_count<(__gnu_cxx::_Lock_policy)2> const&)
+                0x00000000000056ca       0x40 facedetect.o
+                0x00000000000056ca                std::__shared_count<(__gnu_cxx::_Lock_policy)2>::__shared_count(std::__shared_count<(__gnu_cxx::_Lock_policy)2> const&)
+                0x00000000000056ca                std::__shared_count<(__gnu_cxx::_Lock_policy)2>::__shared_count(std::__shared_count<(__gnu_cxx::_Lock_policy)2> const&)
  .text._ZN2cv4MatxIdLi4ELi1EEC2Ev
-                0x0000000000003bd0       0x36 facedetect.o
-                0x0000000000003bd0                cv::Matx<double, 4, 1>::Matx()
-                0x0000000000003bd0                cv::Matx<double, 4, 1>::Matx()
+                0x000000000000570a       0x36 facedetect.o
+                0x000000000000570a                cv::Matx<double, 4, 1>::Matx()
+                0x000000000000570a                cv::Matx<double, 4, 1>::Matx()
  .text._ZN9__gnu_cxx17__is_null_pointerIKcEEbPT_
-                0x0000000000003c06       0x16 facedetect.o
-                0x0000000000003c06                bool __gnu_cxx::__is_null_pointer<char const>(char const*)
+                0x0000000000005740       0x16 facedetect.o
+                0x0000000000005740                bool __gnu_cxx::__is_null_pointer<char const>(char const*)
  .text._ZSt19__iterator_categoryIPKcENSt15iterator_traitsIT_E17iterator_categoryERKS3_
-                0x0000000000003c1c        0xe facedetect.o
-                0x0000000000003c1c                std::iterator_traits<char const*>::iterator_category std::__iterator_category<char const*>(char const* const&)
+                0x0000000000005756        0xe facedetect.o
+                0x0000000000005756                std::iterator_traits<char const*>::iterator_category std::__iterator_category<char const*>(char const* const&)
  .text._ZSt10__distanceIPKcENSt15iterator_traitsIT_E15difference_typeES3_S3_St26random_access_iterator_tag
-                0x0000000000003c2a       0x1a facedetect.o
-                0x0000000000003c2a                std::iterator_traits<char const*>::difference_type std::__distance<char const*>(char const*, char const*, std::random_access_iterator_tag)
+                0x0000000000005764       0x1a facedetect.o
+                0x0000000000005764                std::iterator_traits<char const*>::difference_type std::__distance<char const*>(char const*, char const*, std::random_access_iterator_tag)
  .text._ZN9__gnu_cxx13new_allocatorIN2cv5Rect_IiEEEC2Ev
-                0x0000000000003c44        0xf facedetect.o
-                0x0000000000003c44                __gnu_cxx::new_allocator<cv::Rect_<int> >::new_allocator()
-                0x0000000000003c44                __gnu_cxx::new_allocator<cv::Rect_<int> >::new_allocator()
+                0x000000000000577e        0xf facedetect.o
+                0x000000000000577e                __gnu_cxx::new_allocator<cv::Rect_<int> >::new_allocator()
+                0x000000000000577e                __gnu_cxx::new_allocator<cv::Rect_<int> >::new_allocator()
  .text._ZNSt16allocator_traitsISaIN2cv5Rect_IiEEEE10deallocateERS3_PS2_m
-                0x0000000000003c53       0x32 facedetect.o
-                0x0000000000003c53                std::allocator_traits<std::allocator<cv::Rect_<int> > >::deallocate(std::allocator<cv::Rect_<int> >&, cv::Rect_<int>*, unsigned long)
+                0x000000000000578d       0x32 facedetect.o
+                0x000000000000578d                std::allocator_traits<std::allocator<cv::Rect_<int> > >::deallocate(std::allocator<cv::Rect_<int> >&, cv::Rect_<int>*, unsigned long)
  .text._ZSt8_DestroyIPN2cv5Rect_IiEEEvT_S4_
-                0x0000000000003c85       0x2a facedetect.o
-                0x0000000000003c85                void std::_Destroy<cv::Rect_<int>*>(cv::Rect_<int>*, cv::Rect_<int>*)
- *fill*         0x0000000000003caf        0x1 
+                0x00000000000057bf       0x2a facedetect.o
+                0x00000000000057bf                void std::_Destroy<cv::Rect_<int>*>(cv::Rect_<int>*, cv::Rect_<int>*)
+ *fill*         0x00000000000057e9        0x1 
  .text._ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE15_M_add_ref_copyEv
-                0x0000000000003cb0       0x6d facedetect.o
-                0x0000000000003cb0                std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_add_ref_copy()
- *fill*         0x0000000000003d1d        0x1 
+                0x00000000000057ea       0x6d facedetect.o
+                0x00000000000057ea                std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_add_ref_copy()
+ *fill*         0x0000000000005857        0x1 
  .text._ZN9__gnu_cxx13new_allocatorIN2cv5Rect_IiEEE10deallocateEPS3_m
-                0x0000000000003d1e       0x34 facedetect.o
-                0x0000000000003d1e                __gnu_cxx::new_allocator<cv::Rect_<int> >::deallocate(cv::Rect_<int>*, unsigned long)
+                0x0000000000005858       0x34 facedetect.o
+                0x0000000000005858                __gnu_cxx::new_allocator<cv::Rect_<int> >::deallocate(cv::Rect_<int>*, unsigned long)
  .text._ZNSt12_Destroy_auxILb1EE9__destroyIPN2cv5Rect_IiEEEEvT_S6_
-                0x0000000000003d52       0x13 facedetect.o
-                0x0000000000003d52                void std::_Destroy_aux<true>::__destroy<cv::Rect_<int>*>(cv::Rect_<int>*, cv::Rect_<int>*)
- .text          0x0000000000003d65        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o
- .text          0x0000000000003d65        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o
+                0x000000000000588c       0x13 facedetect.o
+                0x000000000000588c                void std::_Destroy_aux<true>::__destroy<cv::Rect_<int>*>(cv::Rect_<int>*, cv::Rect_<int>*)
+ .text          0x000000000000589f        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o
+ .text          0x000000000000589f        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o
  *(.gnu.warning)
 
-.fini           0x0000000000003d68        0xd
+.fini           0x00000000000058a0        0xd
  *(SORT_NONE(.fini))
- .fini          0x0000000000003d68        0x8 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o
-                0x0000000000003d68                _fini
- .fini          0x0000000000003d70        0x5 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o
+ .fini          0x00000000000058a0        0x8 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o
+                0x00000000000058a0                _fini
+ .fini          0x00000000000058a8        0x5 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o
                 [!provide]                        PROVIDE (__etext = .)
                 [!provide]                        PROVIDE (_etext = .)
                 [!provide]                        PROVIDE (etext = .)
-                0x0000000000004000                . = ALIGN (CONSTANT (MAXPAGESIZE))
-                0x0000000000004000                . = SEGMENT_START ("rodata-segment", (ALIGN (CONSTANT (MAXPAGESIZE)) + (. & (CONSTANT (MAXPAGESIZE) - 0x1))))
+                0x0000000000006000                . = ALIGN (CONSTANT (MAXPAGESIZE))
+                0x0000000000006000                . = SEGMENT_START ("rodata-segment", (ALIGN (CONSTANT (MAXPAGESIZE)) + (. & (CONSTANT (MAXPAGESIZE) - 0x1))))
 
-.rodata         0x0000000000004000       0xf0
+.rodata         0x0000000000006000      0x2b8
  *(.rodata .rodata.* .gnu.linkonce.r.*)
- .rodata.cst4   0x0000000000004000        0x4 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
-                0x0000000000004000                _IO_stdin_used
- *fill*         0x0000000000004004        0x4 
- .rodata        0x0000000000004008       0xe8 facedetect.o
+ .rodata.cst4   0x0000000000006000        0x4 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+                0x0000000000006000                _IO_stdin_used
+ *fill*         0x0000000000006004        0x4 
+ .rodata        0x0000000000006008      0x2b0 facedetect.o
 
 .rodata1
  *(.rodata1)
 
-.eh_frame_hdr   0x00000000000040f0      0x1e4
+.eh_frame_hdr   0x00000000000062b8      0x20c
  *(.eh_frame_hdr)
- .eh_frame_hdr  0x00000000000040f0      0x1e4 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
-                0x00000000000040f0                __GNU_EH_FRAME_HDR
+ .eh_frame_hdr  0x00000000000062b8      0x20c /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+                0x00000000000062b8                __GNU_EH_FRAME_HDR
  *(.eh_frame_entry .eh_frame_entry.*)
 
-.eh_frame       0x00000000000042d8      0x7c8
+.eh_frame       0x00000000000064c8      0x864
  *(.eh_frame)
- .eh_frame      0x00000000000042d8       0x30 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+ .eh_frame      0x00000000000064c8       0x30 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
                                          0x2c (size before relaxing)
- *fill*         0x0000000000004308        0x0 
- .eh_frame      0x0000000000004308       0x28 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+ *fill*         0x00000000000064f8        0x0 
+ .eh_frame      0x00000000000064f8       0x28 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
                                          0x40 (size before relaxing)
- .eh_frame      0x0000000000004330       0x18 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+ .eh_frame      0x0000000000006520       0x18 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
                                          0x30 (size before relaxing)
- .eh_frame      0x0000000000004348       0x18 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+ .eh_frame      0x0000000000006538       0x18 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
                                          0x30 (size before relaxing)
- .eh_frame      0x0000000000004360      0x73c facedetect.o
-                                        0x758 (size before relaxing)
- .eh_frame      0x0000000000004a9c        0x4 /usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o
+ .eh_frame      0x0000000000006550      0x7d8 facedetect.o
+                                        0x7f0 (size before relaxing)
+ .eh_frame      0x0000000000006d28        0x4 /usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o
  *(.eh_frame.*)
 
 .gcc_except_table
-                0x0000000000004aa0       0xb4
+                0x0000000000006d2c       0xa8
  *(.gcc_except_table .gcc_except_table.*)
  .gcc_except_table
-                0x0000000000004aa0       0xb4 facedetect.o
+                0x0000000000006d2c       0xa8 facedetect.o
 
 .gnu_extab
  *(.gnu_extab*)
 
 .exception_ranges
  *(.exception_ranges*)
-                0x0000000000005bc0                . = DATA_SEGMENT_ALIGN (CONSTANT (MAXPAGESIZE), CONSTANT (COMMONPAGESIZE))
+                0x0000000000008b08                . = DATA_SEGMENT_ALIGN (CONSTANT (MAXPAGESIZE), CONSTANT (COMMONPAGESIZE))
 
 .eh_frame
  *(.eh_frame)
@@ -643,7 +671,7 @@ LOAD /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o
 .exception_ranges
  *(.exception_ranges*)
 
-.tdata          0x0000000000005bc0        0x0
+.tdata          0x0000000000008b08        0x0
                 [!provide]                        PROVIDE (__tdata_start = .)
  *(.tdata .tdata.* .gnu.linkonce.td.*)
 
@@ -651,24 +679,24 @@ LOAD /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o
  *(.tbss .tbss.* .gnu.linkonce.tb.*)
  *(.tcommon)
 
-.preinit_array  0x0000000000005bc0        0x0
+.preinit_array  0x0000000000008b08        0x0
                 [!provide]                        PROVIDE (__preinit_array_start = .)
  *(.preinit_array)
                 [!provide]                        PROVIDE (__preinit_array_end = .)
 
-.init_array     0x0000000000005bc0       0x10
+.init_array     0x0000000000008b08       0x10
                 [!provide]                        PROVIDE (__init_array_start = .)
  *(SORT_BY_INIT_PRIORITY(.init_array.*) SORT_BY_INIT_PRIORITY(.ctors.*))
  *(.init_array EXCLUDE_FILE(*crtend?.o *crtend.o *crtbegin?.o *crtbegin.o) .ctors)
- .init_array    0x0000000000005bc0        0x8 /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o
- .init_array    0x0000000000005bc8        0x8 facedetect.o
+ .init_array    0x0000000000008b08        0x8 /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o
+ .init_array    0x0000000000008b10        0x8 facedetect.o
                 [!provide]                        PROVIDE (__init_array_end = .)
 
-.fini_array     0x0000000000005bd0        0x8
+.fini_array     0x0000000000008b18        0x8
                 [!provide]                        PROVIDE (__fini_array_start = .)
  *(SORT_BY_INIT_PRIORITY(.fini_array.*) SORT_BY_INIT_PRIORITY(.dtors.*))
  *(.fini_array EXCLUDE_FILE(*crtend?.o *crtend.o *crtbegin?.o *crtbegin.o) .dtors)
- .fini_array    0x0000000000005bd0        0x8 /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o
+ .fini_array    0x0000000000008b18        0x8 /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o
                 [!provide]                        PROVIDE (__fini_array_end = .)
 
 .ctors
@@ -688,93 +716,97 @@ LOAD /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o
 .jcr
  *(.jcr)
 
-.data.rel.ro    0x0000000000005bd8        0x0
+.data.rel.ro    0x0000000000008b20        0x0
  *(.data.rel.ro.local* .gnu.linkonce.d.rel.ro.local.*)
  *(.data.rel.ro .data.rel.ro.* .gnu.linkonce.d.rel.ro.*)
- .data.rel.ro   0x0000000000005bd8        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+ .data.rel.ro   0x0000000000008b20        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
 
-.dynamic        0x0000000000005bd8      0x260
+.dynamic        0x0000000000008b20      0x260
  *(.dynamic)
- .dynamic       0x0000000000005bd8      0x260 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
-                0x0000000000005bd8                _DYNAMIC
+ .dynamic       0x0000000000008b20      0x260 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+                0x0000000000008b20                _DYNAMIC
 
-.got            0x0000000000005e38      0x1c8
+.got            0x0000000000008d80      0x280
  *(.got.plt)
- .got.plt       0x0000000000005e38      0x188 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
-                0x0000000000005e38                _GLOBAL_OFFSET_TABLE_
+ .got.plt       0x0000000000008d80      0x240 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+                0x0000000000008d80                _GLOBAL_OFFSET_TABLE_
  *(.igot.plt)
  *(.got)
- .got           0x0000000000005fc0       0x40 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+ .got           0x0000000000008fc0       0x40 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
  *(.igot)
-                0x0000000000006000                . = DATA_SEGMENT_RELRO_END (., 0x0)
+                0x0000000000009000                . = DATA_SEGMENT_RELRO_END (., 0x0)
 
-.data           0x0000000000006000       0x18
+.data           0x0000000000009000       0x18
  *(.data .data.* .gnu.linkonce.d.*)
- .data          0x0000000000006000        0x4 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
-                0x0000000000006000                data_start
-                0x0000000000006000                __data_start
- .data          0x0000000000006004        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o
- .data          0x0000000000006004        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o
- *fill*         0x0000000000006004        0x4 
+ .data          0x0000000000009000        0x4 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+                0x0000000000009000                data_start
+                0x0000000000009000                __data_start
+ .data          0x0000000000009004        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o
+ .data          0x0000000000009004        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o
+ *fill*         0x0000000000009004        0x4 
  .data.rel.local
-                0x0000000000006008        0x8 /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o
-                0x0000000000006008                __dso_handle
- .data          0x0000000000006010        0x0 facedetect.o
+                0x0000000000009008        0x8 /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o
+                0x0000000000009008                __dso_handle
+ .data          0x0000000000009010        0x0 facedetect.o
  .data.rel.local.DW.ref.__gxx_personality_v0
-                0x0000000000006010        0x8 facedetect.o
-                0x0000000000006010                DW.ref.__gxx_personality_v0
- .data          0x0000000000006018        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o
- .data          0x0000000000006018        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o
+                0x0000000000009010        0x8 facedetect.o
+                0x0000000000009010                DW.ref.__gxx_personality_v0
+ .data          0x0000000000009018        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o
+ .data          0x0000000000009018        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o
 
 .tm_clone_table
-                0x0000000000006018        0x0
+                0x0000000000009018        0x0
  .tm_clone_table
-                0x0000000000006018        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o
+                0x0000000000009018        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o
  .tm_clone_table
-                0x0000000000006018        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o
+                0x0000000000009018        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o
 
 .data1
  *(.data1)
-                0x0000000000006018                _edata = .
+                0x0000000000009018                _edata = .
                 [!provide]                        PROVIDE (edata = .)
-                0x0000000000006018                . = .
-                0x0000000000006018                __bss_start = .
+                0x0000000000009018                . = .
+                0x0000000000009018                __bss_start = .
 
-.bss            0x0000000000006020       0x58
+.bss            0x0000000000009020       0xa8
  *(.dynbss)
- .dynbss        0x0000000000006020        0x1 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
-                0x0000000000006020                __libc_single_threaded@@GLIBC_2.32
+ .dynbss        0x0000000000009020        0x1 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+                0x0000000000009020                __libc_single_threaded@@GLIBC_2.32
  *(.bss .bss.* .gnu.linkonce.b.*)
- .bss           0x0000000000006021        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
- .bss           0x0000000000006021        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o
- .bss           0x0000000000006021        0x1 /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o
- *fill*         0x0000000000006022       0x1e 
- .bss           0x0000000000006040       0x31 facedetect.o
-                0x0000000000006040                faceCascadePath[abi:cxx11]
-                0x0000000000006060                faceCascade
- .bss           0x0000000000006071        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o
- .bss           0x0000000000006071        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o
+ .bss           0x0000000000009021        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o
+ .bss           0x0000000000009021        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o
+ .bss           0x0000000000009021        0x1 /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o
+ *fill*         0x0000000000009022       0x1e 
+ .bss           0x0000000000009040       0x81 facedetect.o
+                0x0000000000009040                faceCascadePath[abi:cxx11]
+                0x0000000000009060                faceCascade
+                0x0000000000009070                overall_start_time
+                0x0000000000009078                overall_stop_time
+                0x0000000000009080                semaphore_10ms
+                0x00000000000090a0                semaphore_20ms
+ .bss           0x00000000000090c1        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o
+ .bss           0x00000000000090c1        0x0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o
  *(COMMON)
-                0x0000000000006078                . = ALIGN ((. != 0x0)?0x8:0x1)
- *fill*         0x0000000000006071        0x7 
+                0x00000000000090c8                . = ALIGN ((. != 0x0)?0x8:0x1)
+ *fill*         0x00000000000090c1        0x7 
 
 .lbss
  *(.dynlbss)
  *(.lbss .lbss.* .gnu.linkonce.lb.*)
  *(LARGE_COMMON)
-                0x0000000000006078                . = ALIGN (0x8)
-                0x0000000000006078                . = SEGMENT_START ("ldata-segment", .)
+                0x00000000000090c8                . = ALIGN (0x8)
+                0x00000000000090c8                . = SEGMENT_START ("ldata-segment", .)
 
 .lrodata
  *(.lrodata .lrodata.* .gnu.linkonce.lr.*)
 
-.ldata          0x0000000000008078        0x0
+.ldata          0x000000000000b0c8        0x0
  *(.ldata .ldata.* .gnu.linkonce.l.*)
-                0x0000000000008078                . = ALIGN ((. != 0x0)?0x8:0x1)
-                0x0000000000008078                . = ALIGN (0x8)
-                0x0000000000006078                _end = .
+                0x000000000000b0c8                . = ALIGN ((. != 0x0)?0x8:0x1)
+                0x000000000000b0c8                . = ALIGN (0x8)
+                0x00000000000090c8                _end = .
                 [!provide]                        PROVIDE (end = .)
-                0x0000000000008078                . = DATA_SEGMENT_END (.)
+                0x000000000000b0c8                . = DATA_SEGMENT_END (.)
 
 .stab
  *(.stab)
@@ -824,25 +856,25 @@ LOAD /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o
 .debug_pubnames
  *(.debug_pubnames)
 
-.debug_info     0x0000000000000000    0x1dbcd
+.debug_info     0x0000000000000000    0x1e881
  *(.debug_info .gnu.linkonce.wi.*)
- .debug_info    0x0000000000000000    0x1dbcd facedetect.o
+ .debug_info    0x0000000000000000    0x1e881 facedetect.o
 
-.debug_abbrev   0x0000000000000000     0x1106
+.debug_abbrev   0x0000000000000000     0x118a
  *(.debug_abbrev)
- .debug_abbrev  0x0000000000000000     0x1106 facedetect.o
+ .debug_abbrev  0x0000000000000000     0x118a facedetect.o
 
-.debug_line     0x0000000000000000      0xbe8
+.debug_line     0x0000000000000000      0xde2
  *(.debug_line .debug_line.* .debug_line_end)
- .debug_line    0x0000000000000000      0xbe8 facedetect.o
+ .debug_line    0x0000000000000000      0xde2 facedetect.o
 
 .debug_frame
  *(.debug_frame)
 
-.debug_str      0x0000000000000000    0x22ef7
+.debug_str      0x0000000000000000    0x24208
  *(.debug_str)
- .debug_str     0x0000000000000000    0x22ef7 facedetect.o
-                                      0x236b8 (size before relaxing)
+ .debug_str     0x0000000000000000    0x24208 facedetect.o
+                                      0x24a22 (size before relaxing)
 
 .debug_loc
  *(.debug_loc)
@@ -872,11 +904,11 @@ LOAD /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o
  *(.debug_addr)
 
 .debug_line_str
-                0x0000000000000000      0x63e
+                0x0000000000000000      0x6b9
  *(.debug_line_str)
  .debug_line_str
-                0x0000000000000000      0x63e facedetect.o
-                                        0x6f8 (size before relaxing)
+                0x0000000000000000      0x6b9 facedetect.o
+                                        0x786 (size before relaxing)
 
 .debug_loclists
  *(.debug_loclists)

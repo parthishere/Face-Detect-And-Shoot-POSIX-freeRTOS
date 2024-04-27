@@ -5,7 +5,7 @@ CC=g++
 CDEFS=
 CFLAGS= -O0 -g $(INCLUDE_DIRS) $(CDEFS)
 LDFLAGS= -Wl,-Map,output.map
-LIBS= -L/usr/lib -lopencv_core -lopencv_flann -lopencv_video -lrt
+LIBS= -L/usr/lib -lopencv_core -lopencv_flann -lopencv_video -lrt -lpthread
 
 HFILES= 
 CFILES= facedetect.cpp
@@ -13,13 +13,20 @@ CFILES= facedetect.cpp
 SRCS= ${HFILES} ${CFILES}
 OBJS= ${CFILES:.cpp=.o}
 
-all:	facedetect 
+# Name of binary
+MAIN = facedetect
+
+run: $(MAIN)
+	@sudo ./$(MAIN) $(ARGS)
+
+all: clean $(MAIN) run
+	@echo Program Compiled
 
 clean:
 	-rm -f *.o *.d
-	-rm -f facedetect 
+	-rm -f $(MAIN) 
 
-facedetect: facedetect.o
+$(MAIN): facedetect.o
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $@.o `pkg-config --libs opencv4` $(LIBS)
 
 %.o: %.cpp
