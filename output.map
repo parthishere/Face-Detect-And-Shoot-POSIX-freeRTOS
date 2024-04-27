@@ -864,9 +864,9 @@ LOAD /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o
  *(.debug_abbrev)
  .debug_abbrev  0x0000000000000000     0x118a facedetect.o
 
-.debug_line     0x0000000000000000      0xde2
+.debug_line     0x0000000000000000      0xde3
  *(.debug_line .debug_line.* .debug_line_end)
- .debug_line    0x0000000000000000      0xde2 facedetect.o
+ .debug_line    0x0000000000000000      0xde3 facedetect.o
 
 .debug_frame
  *(.debug_frame)
