@@ -16,8 +16,40 @@
 #include <semaphore.h>
 #include <sys/time.h>
 
-#define NUMBER_OF_TASKS 3
+#include <signal.h>
 
+#ifdef __arch64__
+#include <JetsonGPIO.h>
+
+
+const map<string, int> output_pins{
+    {"JETSON_XAVIER", 18},    {"JETSON_NANO", 33},   {"JETSON_NX", 33},
+    {"CLARA_AGX_XAVIER", 18}, {"JETSON_TX2_NX", 32}, {"JETSON_ORIN", 18}, 
+    {"JETSON_ORIN_NX", 33}, {"JETSON_ORIN_NANO", 33}, 
+};
+
+
+int get_output_pin()
+{
+    if (output_pins.find(GPIO::model) == output_pins.end())
+    {
+        cerr << "PWM not supported on this board\n";
+        terminate();
+    }
+
+    return output_pins.at(GPIO::model);
+}
+
+inline void delay(double s) { this_thread::sleep_for(std::chrono::duration<double>(s)); }
+
+static bool end_this_program = false;
+
+void signalHandler(int s) { end_this_program = true; }
+
+#endif
+
+
+#define NUMBER_OF_TASKS 3
 
 /** Global variables */
 cv::String faceCascadePath;
@@ -59,6 +91,7 @@ double read_time(double *var)
     }
     return (*var);
 }
+
 
 
 
@@ -321,6 +354,39 @@ int main( int argc, const char** argv )
         
     }
 
+#ifdef __arch64__
+        int output_pin = get_output_pin();
+
+    // When CTRL+C pressed, signalHandler will be called
+    signal(SIGINT, signalHandler);
+
+    // Pin Setup.
+    // Board pin-numbering scheme
+    GPIO::setmode(GPIO::BOARD);
+
+    // set pin as an output pin with optional initial state of HIGH
+    GPIO::setup(output_pin, GPIO::OUT, GPIO::HIGH);
+    GPIO::PWM p(output_pin, 50);
+    auto val = 25.0;
+    auto incr = 5.0;
+    p.start(val);
+
+    cout << "PWM running. Press CTRL+C to exit." << endl;
+
+    while (!end_this_program)
+    {
+        delay(0.25);
+        if (val >= 100)
+            incr = -incr;
+        if (val <= 0)
+            incr = -incr;
+        val += incr;
+        p.ChangeDutyCycle(val);
+    }
+
+    p.stop();
+    GPIO::cleanup();
+#endif
 
     printf("Test Conducted over %lf msec\n", (double)(overall_stop_time - overall_start_time));
 
