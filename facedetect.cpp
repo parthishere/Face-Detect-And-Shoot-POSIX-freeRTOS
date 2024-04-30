@@ -21,33 +21,9 @@
 #ifdef __arch64__
 #include <JetsonGPIO.h>
 
-
-const map<string, int> output_pins{
-    {"JETSON_XAVIER", 18},    {"JETSON_NANO", 33},   {"JETSON_NX", 33},
-    {"CLARA_AGX_XAVIER", 18}, {"JETSON_TX2_NX", 32}, {"JETSON_ORIN", 18}, 
-    {"JETSON_ORIN_NX", 33}, {"JETSON_ORIN_NANO", 33}, 
-};
-
-
-int get_output_pin()
-{
-    if (output_pins.find(GPIO::model) == output_pins.end())
-    {
-        cerr << "PWM not supported on this board\n";
-        terminate();
-    }
-
-    return output_pins.at(GPIO::model);
-}
-
-inline void delay(double s) { this_thread::sleep_for(std::chrono::duration<double>(s)); }
-
-static bool end_this_program = false;
-
-void signalHandler(int s) { end_this_program = true; }
+// run opt/nvidia/jetson-io/jetson-io.py
 
 #endif
-
 
 #define NUMBER_OF_TASKS 3
 
@@ -75,6 +51,13 @@ typedef struct
     int target_cpu;
 } RmTask_t;
 
+typedef struct{
+    int x1;
+    int y1;
+    int x2;
+    int y2;
+} Points_t;
+
 sem_t semaphore_10ms, semaphore_20ms;
 
 double read_time(double *var)
@@ -92,10 +75,7 @@ double read_time(double *var)
     return (*var);
 }
 
-
-
-
-void detectFaceOpenCVHaar(cv::CascadeClassifier faceCascade, cv::Mat &frameOpenCVHaar, int inHeight=300, int inWidth=0)
+Points_t detectFaceOpenCVHaar(cv::CascadeClassifier faceCascade, cv::Mat &frameOpenCVHaar, int inHeight = 300, int inWidth = 0)
 {
     int frameHeight = frameOpenCVHaar.rows;
     int frameWidth = frameOpenCVHaar.cols;
@@ -112,30 +92,31 @@ void detectFaceOpenCVHaar(cv::CascadeClassifier faceCascade, cv::Mat &frameOpenC
     std::vector<cv::Rect> faces;
     faceCascade.detectMultiScale(frameGray, faces);
 
-    for ( size_t i = 0; i < faces.size(); i++ )
+    int x1, x2, y1, y2;
+    for (size_t i = 0; i < faces.size(); i++)
     {
-      int x1 = (int)(faces[i].x * scaleWidth);
-      int y1 = (int)(faces[i].y * scaleHeight);
-      int x2 = (int)((faces[i].x + faces[i].width) * scaleWidth);
-      int y2 = (int)((faces[i].y + faces[i].height) * scaleHeight);
-      rectangle(frameOpenCVHaar, cv::Point(x1, y1), cv::Point(x2, y2), cv::Scalar(0,255,0), (int)(frameHeight/150.0), 4);
+        x1 = (int)(faces[i].x * scaleWidth);
+        y1 = (int)(faces[i].y * scaleHeight);
+        x2 = (int)((faces[i].x + faces[i].width) * scaleWidth);
+        y2 = (int)((faces[i].y + faces[i].height) * scaleHeight);
+        rectangle(frameOpenCVHaar, cv::Point(x1, y1), cv::Point(x2, y2), cv::Scalar(0, 255, 0), (int)(frameHeight / 150.0), 4);
     }
+    return {x1, y1, x2, y2};
 }
-
 
 void *FaceDetectService(void *args)
 {
-    RmTask_t *task_parameters  = (RmTask_t *)args;
-    
-   faceCascadePath = "./haarcascade_frontalface_default.xml";
-    if(!faceCascade.load(faceCascadePath))
+    RmTask_t *task_parameters = (RmTask_t *)args;
+
+    faceCascadePath = "./haarcascade_frontalface_default.xml";
+    if (!faceCascade.load(faceCascadePath))
     {
         printf("--(!)Error loading face cascade\n");
         return NULL;
     }
 
     cv::VideoCapture source;
-    
+
     source.open(0, cv::CAP_V4L);
 
     cv::Mat frame;
@@ -151,15 +132,15 @@ void *FaceDetectService(void *args)
 
         double t = cv::getTickCount();
         detectFaceOpenCVHaar(faceCascade, frame);
-        tt_opencvHaar = ((double)cv::getTickCount() - t)/cv::getTickFrequency();
-        fpsOpencvHaar = 1/tt_opencvHaar;
+        tt_opencvHaar = ((double)cv::getTickCount() - t) / cv::getTickFrequency();
+        fpsOpencvHaar = 1 / tt_opencvHaar;
 
-        cv::putText(frame, cv::format("OpenCV HAAR ; FPS = %.2f",fpsOpencvHaar), cv::Point(10, 50), cv::FONT_HERSHEY_SIMPLEX, 1.3, cv::Scalar(0, 0, 255), 4);
+        cv::putText(frame, cv::format("OpenCV HAAR ; FPS = %.2f", fpsOpencvHaar), cv::Point(10, 50), cv::FONT_HERSHEY_SIMPLEX, 1.3, cv::Scalar(0, 0, 255), 4);
 
         cv::imshow("OpenCV - HAAR Face Detection", frame);
 
         int k = cv::waitKey(5);
-        if(k == 27)
+        if (k == 27)
         {
             cv::destroyAllWindows();
             break;
@@ -168,62 +149,103 @@ void *FaceDetectService(void *args)
     return NULL;
 }
 
-
 void *ServoActuatorService(void *args)
 {
-    RmTask_t *task_parameters  = (RmTask_t *)args;
-    
+    RmTask_t *task_parameters = (RmTask_t *)args;
+
     struct sched_param schedule_param;
     int policy;
     double execution_complete_time_for_a_loop;
     double execution_start_time_for_a_loop;
 
+    // while (1)
+    // {
+    //     read_time(&execution_start_time_for_a_loop);
+    //     // sem_wait(&semaphore_10ms);
+
+    //     printf("Actuation Service will execute\n");
+
+    //     pthread_getschedparam(pthread_self(), &policy, &schedule_param);
+    //     read_time(&execution_complete_time_for_a_loop);
+
+    //     // printf("Thread10 | priority = %d | time stamp(arrival) %lf msec | CPU burst time : %lf \n", schedule_param.sched_priority, (execution_start_time_for_a_loop - overall_start_time), (execution_complete_time_for_a_loop - execution_start_time_for_a_loop));
+    //     sleep(1);
+    // }
+
+#ifdef __arch64__
+    // Pin Setup.
+    // Board pin-numbering scheme
+    GPIO::setmode(GPIO::BOARD);
+
+    // set pin as an output pin with optional initial state of HIGH
+    GPIO::setup(33, GPIO::OUT, GPIO::HIGH);
+    GPIO::PWM p(output_pin, 50);
+
+    auto val = 25.0;
+    auto incr = 5.0;
+    p.start(val);
+
+    cout << "PWM running. Press CTRL+C to exit." << endl;
+
     while (1)
     {
-        read_time(&execution_start_time_for_a_loop);
-        // sem_wait(&semaphore_10ms);
-   
-        printf("Actuation Service will execute\n");
-
-        pthread_getschedparam(pthread_self(), &policy, &schedule_param);
-        read_time(&execution_complete_time_for_a_loop);
-        
-        // printf("Thread10 | priority = %d | time stamp(arrival) %lf msec | CPU burst time : %lf \n", schedule_param.sched_priority, (execution_start_time_for_a_loop - overall_start_time), (execution_complete_time_for_a_loop - execution_start_time_for_a_loop));
-        sleep(1);
+        sleep(0.25);
+        if (val >= 100)
+            incr = -incr;
+        if (val <= 0)
+            incr = -incr;
+        val += incr;
+        p.ChangeDutyCycle(val);
     }
+
+    p.stop();
+    GPIO::cleanup();
+#endif
 
     return NULL;
 }
-
 
 void *ServoShootService(void *args)
 {
-    RmTask_t *task_parameters  = (RmTask_t *)args;
-    
+    RmTask_t *task_parameters = (RmTask_t *)args;
+
     struct sched_param schedule_param;
     int policy;
     double execution_complete_time_for_a_loop;
     double execution_start_time_for_a_loop;
 
+#ifdef __arch64__
+    // Pin Setup.
+    // Board pin-numbering scheme
+    GPIO::setmode(GPIO::BOARD);
+
+    // set pin as an output pin with optional initial state of HIGH
+    GPIO::setup(32, GPIO::OUT, GPIO::HIGH);
+    GPIO::PWM p(output_pin, 50);
+
+    auto val = 25.0;
+    auto incr = 5.0;
+    p.start(val);
+
+    cout << "PWM running. Press CTRL+C to exit." << endl;
+
     while (1)
     {
-        read_time(&execution_start_time_for_a_loop);
-        // sem_wait(&semaphore_10ms);
-   
-        printf("Shooting service will execute\n");
-
-        pthread_getschedparam(pthread_self(), &policy, &schedule_param);
-        read_time(&execution_complete_time_for_a_loop);
-        
-        // printf("Thread10 | priority = %d | time stamp(arrival) %lf msec | CPU burst time : %lf \n", schedule_param.sched_priority, (execution_start_time_for_a_loop - overall_start_time), (execution_complete_time_for_a_loop - execution_start_time_for_a_loop));
-        sleep(1);
-
+        sleep(0.25);
+        if (val >= 100)
+            incr = -incr;
+        if (val <= 0)
+            incr = -incr;
+        val += incr;
+        p.ChangeDutyCycle(val);
     }
+
+    p.stop();
+    GPIO::cleanup();
+#endif
 
     return NULL;
 }
-
-
 
 void print_scheduler(void)
 {
@@ -245,10 +267,8 @@ void print_scheduler(void)
     }
 }
 
-
-int main( int argc, const char** argv )
+int main(int argc, const char **argv)
 {
-
 
     pthread_t threads[NUMBER_OF_TASKS];
     cpu_set_t threadcpu;
@@ -281,9 +301,8 @@ int main( int argc, const char** argv )
          .thread_args = {2},
          .target_cpu = 0}
 
-
     };
-    //Initialize Semaphore
+    // Initialize Semaphore
     sem_init(&semaphore_10ms, false, 1);
     sem_init(&semaphore_20ms, false, 1);
 
@@ -297,15 +316,14 @@ int main( int argc, const char** argv )
 
     CPU_ZERO(&threadcpu); // clear all the cpus in cpuset
 
-
     main_priority_param.sched_priority = rt_max_prio;
     for (int i = 0; i < NUMBER_OF_TASKS; i++)
     {
         CPU_SET(tasks[i].target_cpu, &threadcpu);
-        
+
         // initialize attributes
         pthread_attr_init(&tasks[i].attribute);
-        
+
         pthread_attr_setinheritsched(&tasks[i].attribute, PTHREAD_EXPLICIT_SCHED);
         pthread_attr_setschedpolicy(&tasks[i].attribute, SCHED_FIFO);
         pthread_attr_setschedparam(&tasks[i].attribute, &tasks[i].priority_param);
@@ -332,7 +350,6 @@ int main( int argc, const char** argv )
     printf("After adjustments to scheduling policy:\n");
     print_scheduler();
 
-
     read_time(&overall_start_time);
 
     for (int i = 0; i < NUMBER_OF_TASKS; i++)
@@ -343,50 +360,12 @@ int main( int argc, const char** argv )
         // third parameter is the routine we want to give
         // Fourth parameter is the value
         printf("Setting thread %d to core %d\n", i, tasks[i].target_cpu);
-        
-        
 
         if (pthread_create(&tasks[i].thread, &tasks[i].attribute, tasks[i].thread_handle, &tasks[i]) != 0)
         {
             perror("Create_Fail");
         }
-
-        
     }
-
-#ifdef __arch64__
-        int output_pin = get_output_pin();
-
-    // When CTRL+C pressed, signalHandler will be called
-    signal(SIGINT, signalHandler);
-
-    // Pin Setup.
-    // Board pin-numbering scheme
-    GPIO::setmode(GPIO::BOARD);
-
-    // set pin as an output pin with optional initial state of HIGH
-    GPIO::setup(output_pin, GPIO::OUT, GPIO::HIGH);
-    GPIO::PWM p(output_pin, 50);
-    auto val = 25.0;
-    auto incr = 5.0;
-    p.start(val);
-
-    cout << "PWM running. Press CTRL+C to exit." << endl;
-
-    while (!end_this_program)
-    {
-        delay(0.25);
-        if (val >= 100)
-            incr = -incr;
-        if (val <= 0)
-            incr = -incr;
-        val += incr;
-        p.ChangeDutyCycle(val);
-    }
-
-    p.stop();
-    GPIO::cleanup();
-#endif
 
     printf("Test Conducted over %lf msec\n", (double)(overall_stop_time - overall_start_time));
 
@@ -401,7 +380,5 @@ int main( int argc, const char** argv )
         perror("attr destroy");
 
     sem_destroy(&semaphore_10ms);
-    sem_destroy(&semaphore_20ms);  
-
-    
+    sem_destroy(&semaphore_20ms);
 }
