@@ -9,6 +9,8 @@
 #include <JetsonGPIO.h>
 
 #define NANOSEC_TO_MICROSECOND 1000
+#define SERVO1 18
+#define SERVO2 12
 
 // Pin Definitions
 int output_pin = 18; // BOARD pin 12, BCM pin 18
@@ -58,6 +60,9 @@ int main()
         change_servo_degree(degree);
         delay_ns(1000000000);
         degree++;
+        if(degree == 100) {
+            degree = 0;
+        }
     }
 
     GPIO::cleanup();

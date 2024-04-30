@@ -19,13 +19,31 @@
 #include <signal.h>
 
 #ifdef __arch64__
-#include <JetsonGPIO.h>
 
-// run opt/nvidia/jetson-io/jetson-io.py
+#include <JetsonGPIO.h>
+inline void delay_ns(int ns) { this_thread::sleep_for(chrono::nanoseconds(ns)); }
+
+void change_servo_degree(int output_pin, uint8_t degree){
+    if(degree > 180){
+        return;
+    }
+    
+
+    int turnon_us = (degree * 1000000) / 180;
+    turnon_us += 1000000;
+    int turnoff_us = (2000000) - turnon_us;
+    GPIO::output(output_pin, GPIO::HIGH);
+    delay_ns(turnon_us);
+    GPIO::output(output_pin, GPIO::LOW);
+    delay_ns(turnoff_us);
+}
 
 #endif
 
 #define NUMBER_OF_TASKS 3
+
+#define SERVO1 18
+#define SERVO2 12
 
 /** Global variables */
 cv::String faceCascadePath;
@@ -41,7 +59,6 @@ typedef struct
 {
     int period;
     int burst_time;
-    int count_for_period;
     struct sched_param priority_param;
     void *(*thread_handle)(void *);
     pthread_t thread;
@@ -75,6 +92,8 @@ double read_time(double *var)
     return (*var);
 }
 
+
+
 Points_t detectFaceOpenCVHaar(cv::CascadeClassifier faceCascade, cv::Mat &frameOpenCVHaar, int inHeight = 300, int inWidth = 0)
 {
     int frameHeight = frameOpenCVHaar.rows;
@@ -103,6 +122,8 @@ Points_t detectFaceOpenCVHaar(cv::CascadeClassifier faceCascade, cv::Mat &frameO
     }
     return {x1, y1, x2, y2};
 }
+
+
 
 void *FaceDetectService(void *args)
 {
@@ -173,32 +194,25 @@ void *ServoActuatorService(void *args)
     // }
 
 #ifdef __arch64__
+
     // Pin Setup.
-    // Board pin-numbering scheme
-    GPIO::setmode(GPIO::BOARD);
-
+    GPIO::setmode(GPIO::BCM);
     // set pin as an output pin with optional initial state of HIGH
-    GPIO::setup(33, GPIO::OUT, GPIO::HIGH);
-    GPIO::PWM p(output_pin, 50);
+    GPIO::setup(SERVO1, GPIO::OUT, GPIO::HIGH);
 
-    auto val = 25.0;
-    auto incr = 5.0;
-    p.start(val);
-
-    cout << "PWM running. Press CTRL+C to exit." << endl;
-
+    cout << "Strating THread 1 now! Press CTRL+C to exit" << endl;
+    int curr_value = GPIO::HIGH;
+    int degree = 0;
     while (1)
     {
-        sleep(0.25);
-        if (val >= 100)
-            incr = -incr;
-        if (val <= 0)
-            incr = -incr;
-        val += incr;
-        p.ChangeDutyCycle(val);
+        change_servo_degree(SERVO1, degree);
+        delay_ns(1000000000);
+        degree++;
+        if(degree == 100) {
+            degree = 0;
+        }
     }
 
-    p.stop();
     GPIO::cleanup();
 #endif
 
@@ -216,32 +230,25 @@ void *ServoShootService(void *args)
 
 #ifdef __arch64__
     // Pin Setup.
-    // Board pin-numbering scheme
-    GPIO::setmode(GPIO::BOARD);
-
+    GPIO::setmode(GPIO::BCM);
     // set pin as an output pin with optional initial state of HIGH
-    GPIO::setup(32, GPIO::OUT, GPIO::HIGH);
-    GPIO::PWM p(output_pin, 50);
+    GPIO::setup(SERVO1, GPIO::OUT, GPIO::HIGH);
 
-    auto val = 25.0;
-    auto incr = 5.0;
-    p.start(val);
-
-    cout << "PWM running. Press CTRL+C to exit." << endl;
-
+    cout << "Strating Thread 2 now! Press CTRL+C to exit" << endl;
+    int curr_value = GPIO::HIGH;
+    int degree = 0;
     while (1)
     {
-        sleep(0.25);
-        if (val >= 100)
-            incr = -incr;
-        if (val <= 0)
-            incr = -incr;
-        val += incr;
-        p.ChangeDutyCycle(val);
+        change_servo_degree(SERVO1, degree);
+        delay_ns(2000000000);
+        degree++;
+        if(degree == 100) {
+            degree = 0;
+        }
     }
 
-    p.stop();
     GPIO::cleanup();
+
 #endif
 
     return NULL;
@@ -277,29 +284,32 @@ int main(int argc, const char **argv)
     int rt_min_prio = sched_get_priority_min(SCHED_FIFO);
 
     RmTask_t tasks[NUMBER_OF_TASKS] = {
-        {.period = 20,     // ms
-         .burst_time = 10, // ms
-         .priority_param = {rt_max_prio},
-         .thread_handle = &FaceDetectService,
-         .thread = threads[0],
-         .thread_args = {0},
-         .target_cpu = 2},
+        // {.period = 20,     // ms
+        //  .burst_time = 10, // ms
+        //  .priority_param = {rt_max_prio},
+        //  .thread_handle = &FaceDetectService,
+        //  .thread = threads[0],
+        //  .thread_args = {0},
+        //  .target_cpu = 2},
+         {20, 10, {rt_max_prio}, &FaceDetectService, threads[0], {0}, NULL, tasks[0].attribute, 1},
 
-        {.period = 50,
-         .burst_time = 20,
-         .priority_param = {rt_max_prio - 1},
-         .thread_handle = &ServoActuatorService,
-         .thread = threads[1],
-         .thread_args = {1},
-         .target_cpu = 0},
+        // {.period = 50,
+        //  .burst_time = 20,
+        //  .priority_param = {rt_max_prio - 1},
+        //  .thread_handle = &ServoActuatorService,
+        //  .thread = threads[1],
+        //  .thread_args = {1},
+        //  .target_cpu = 0},
+        {50, 20, {rt_max_prio - 1}, &ServoActuatorService, threads[1], {1}, NULL, tasks[1].attribute, 0},
 
-        {.period = 50,
-         .burst_time = 20,
-         .priority_param = {rt_max_prio - 2},
-         .thread_handle = &ServoShootService,
-         .thread = threads[2],
-         .thread_args = {2},
-         .target_cpu = 0}
+        // {.period = 50,
+        //  .burst_time = 20,
+        //  .priority_param = {rt_max_prio - 2},
+        //  .thread_handle = &ServoShootService,
+        //  .thread = threads[2],
+        //  .thread_args = {2},
+        //  .target_cpu = 0}
+        {50, 20, {rt_max_prio - 2}, &ServoShootService, threads[2], {2}, NULL, tasks[2].attribute, 0}
 
     };
     // Initialize Semaphore
