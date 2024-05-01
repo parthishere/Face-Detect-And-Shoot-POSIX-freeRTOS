@@ -132,7 +132,21 @@ Points_t detectFaceOpenCVLBP(cv::CascadeClassifier faceCascade, cv::Mat &frameGr
 void *FaceDetectService(void *args)
 {
     RmTask_t *task_parameters = (RmTask_t *)args;
-    // std::string faceCascadePath = "./haarcascade_frontalface_default.xml";
+
+
+    struct sched_param schedule_param;
+    int policy, cpucore;
+    pthread_t thread;
+    cpu_set_t cpuset;
+
+
+    thread=pthread_self();
+    cpucore=sched_getcpu();
+
+    pthread_getschedparam(pthread_self(), &policy, &schedule_param);
+    CPU_ZERO(&cpuset);
+    pthread_getaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
+
     std::string faceCascadePath = "./lbpcascade_frontalface.xml";
     cv::CascadeClassifier faceCascade;
     
@@ -149,6 +163,8 @@ void *FaceDetectService(void *args)
     
     double tt_opencvLBP = 0;
     double fpsOpencvLBP = 0;
+
+    
     
     while (true) {
         
@@ -166,7 +182,7 @@ void *FaceDetectService(void *args)
         tt_opencvLBP = ((double)cv::getTickCount() - t) / cv::getTickFrequency();
         fpsOpencvLBP = 1 / tt_opencvLBP;
         
-        printf("FPS: %.2f\n", fpsOpencvLBP);
+        printf("FPS: %.2f\n, current time from start 1s 2ms, execution time for one frame 10ms", fpsOpencvLBP);
         cv::imshow("OpenCV - LBP Face Detection", frameGray);
         
         if(face_points.x1 != 0 && face_points.x2 != 0){
@@ -191,7 +207,9 @@ void *ServoActuatorService(void *args)
     RmTask_t *task_parameters = (RmTask_t *)args;
 
     struct sched_param schedule_param;
-    int policy;
+    int policy, cpucore;
+    pthread_t thread;
+    cpu_set_t cpuset;
     double execution_complete_time_for_a_loop;
     double execution_start_time_for_a_loop;
 
@@ -202,7 +220,13 @@ void *ServoActuatorService(void *args)
 
     //     printf("Actuation Service will execute\n");
 
-    //     pthread_getschedparam(pthread_self(), &policy, &schedule_param);
+    thread=pthread_self();
+    cpucore=sched_getcpu();
+
+    pthread_getschedparam(pthread_self(), &policy, &schedule_param);
+    CPU_ZERO(&cpuset);
+    pthread_getaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
+
     //     read_time(&execution_complete_time_for_a_loop);
 
     //     // printf("Thread10 | priority = %d | time stamp(arrival) %lf msec | CPU burst time : %lf \n", schedule_param.sched_priority, (execution_start_time_for_a_loop - overall_start_time), (execution_complete_time_for_a_loop - execution_start_time_for_a_loop));
@@ -249,10 +273,23 @@ void *ServoShootService(void *args)
 {
     RmTask_t *task_parameters = (RmTask_t *)args;
 
-    struct sched_param schedule_param;
-    int policy;
+
     double execution_complete_time_for_a_loop;
     double execution_start_time_for_a_loop;
+
+
+    struct sched_param schedule_param;
+    int policy, cpucore;
+    pthread_t thread;
+    cpu_set_t cpuset;
+
+
+    thread=pthread_self();
+    cpucore=sched_getcpu();
+
+    pthread_getschedparam(pthread_self(), &policy, &schedule_param);
+    CPU_ZERO(&cpuset);
+    pthread_getaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
 
 #ifdef IS_JETSON_NANO
     // Pin Setup.
