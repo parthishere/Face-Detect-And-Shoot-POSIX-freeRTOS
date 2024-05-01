@@ -162,15 +162,20 @@ void *FaceDetectService(void *args)
         cv::cvtColor(frame, frameGray, cv::COLOR_BGR2GRAY);
         
         double t = cv::getTickCount();
-        detectFaceOpenCVLBP(faceCascade, frameGray);
+        Points_t face_points =  detectFaceOpenCVLBP(faceCascade, frameGray);
         tt_opencvLBP = ((double)cv::getTickCount() - t) / cv::getTickFrequency();
         fpsOpencvLBP = 1 / tt_opencvLBP;
         
         printf("FPS: %.2f\n", fpsOpencvLBP);
         cv::imshow("OpenCV - LBP Face Detection", frameGray);
         
+        if(face_points.x1 != 0 && face_points.x2 != 0){
+            // send points to queue;
+        }
+
         int k = cv::waitKey(5);
         if (k == 27) {
+            //set flag
             break;
         }
         sem_post(&semaphore_servo_actuator);
@@ -221,8 +226,8 @@ void *ServoActuatorService(void *args)
         // memcpy((void *)&id, &(buffer[sizeof(void *)]), sizeof(int));
         // printf("receiver - ptr msg 0x%p received with priority = %d, length = %d, id = %d\n", buffptr, prio, nbytes, id);
         // printf("receiver - Contents of ptr = \n%s\n", (char *)buffptr);
-        
-        sem_wait(&semaphore_servo_shoot);
+        // wait for queue 
+        // sem_wait(&semaphore_servo_shoot);
 
         change_servo_degree(SERVO1, degree);
         degree+=10;
