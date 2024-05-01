@@ -157,7 +157,7 @@ void *FaceDetectService(void *args)
         source >> frame;
         if (frame.empty())
             break;
-        
+        cv::imshow("Original Frame", frame);
         cv::resize(frame, frame, frameSize);
         cv::cvtColor(frame, frameGray, cv::COLOR_BGR2GRAY);
         
