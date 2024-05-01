@@ -19,6 +19,11 @@
 
 #include <signal.h>
 
+// #define HEIGHT 640
+#define HEIGHT 320
+// #define WIDTH 480
+#define WIDTH 240
+
 #ifdef IS_JETSON_NANO
 
 #include <JetsonGPIO.h>
@@ -105,21 +110,29 @@ Points_t detectFaceOpenCVLBP(cv::CascadeClassifier faceCascade, cv::Mat &frameGr
     std::vector<cv::Rect> faces;
     faceCascade.detectMultiScale(frameGray, faces);
     
+    // for (int i=0; i<faces.size(); i++) {
+    //      int x1 = faces[i].x; 
+    //      int y1 = faces[i].y; 
+    //      int x2 = faces[i].x + faces[i].width; 
+    //      int y2 = faces[i].y + faces[i].height; 
+    //      cv::rectangle(frameGray, cv::Point(x1, y1), cv::Point(x2, y2), cv::Scalar(0, 255, 0), 2); 
+    // } 
+
     if (!faces.empty()) {
         int x1 = faces[0].x;
         int y1 = faces[0].y;
         int x2 = faces[0].x + faces[0].width;
         int y2 = faces[0].y + faces[0].height;
         cv::rectangle(frameGray, cv::Point(x1, y1), cv::Point(x2, y2), cv::Scalar(0, 255, 0), 2);
-        return {x1, y1, x2, y2};
+        // return {x1, y1, x2, y2};
     }
-    
     return {0, 0, 0, 0};
 }
 
 void *FaceDetectService(void *args)
 {
     RmTask_t *task_parameters = (RmTask_t *)args;
+    // std::string faceCascadePath = "./haarcascade_frontalface_default.xml";
     std::string faceCascadePath = "./lbpcascade_frontalface.xml";
     cv::CascadeClassifier faceCascade;
     
@@ -132,13 +145,14 @@ void *FaceDetectService(void *args)
     source.open(0, cv::CAP_V4L);
     
     cv::Mat frame, frameGray;
-    cv::Size frameSize(640, 480);
+    cv::Size frameSize(HEIGHT, WIDTH);
     
     double tt_opencvLBP = 0;
     double fpsOpencvLBP = 0;
     
     while (true) {
-        sem_wait(&semaphore_face_detect);
+        
+        //sem_wait(&semaphore_face_detect);
         
         source >> frame;
         if (frame.empty())
@@ -153,12 +167,13 @@ void *FaceDetectService(void *args)
         fpsOpencvLBP = 1 / tt_opencvLBP;
         
         printf("FPS: %.2f\n", fpsOpencvLBP);
-        cv::imshow("OpenCV - LBP Face Detection", frame);
+        cv::imshow("OpenCV - LBP Face Detection", frameGray);
         
         int k = cv::waitKey(5);
         if (k == 27) {
             break;
         }
+        sem_post(&semaphore_servo_actuator);
         
     }
 
@@ -201,21 +216,22 @@ void *ServoActuatorService(void *args)
     int degree = 0;
     while (1)
     {
-        memcpy(&buffptr, &buffer, sizeof(void *));
-        memcpy((void *)&id, &(buffer[sizeof(void *)]), sizeof(int));
-        printf("receiver - ptr msg 0x%p received with priority = %d, length = %d, id = %d\n", buffptr, prio, nbytes, id);
-        printf("receiver - Contents of ptr = \n%s\n", (char *)buffptr);
+
+        // memcpy(&buffptr, &buffer, sizeof(void *));
+        // memcpy((void *)&id, &(buffer[sizeof(void *)]), sizeof(int));
+        // printf("receiver - ptr msg 0x%p received with priority = %d, length = %d, id = %d\n", buffptr, prio, nbytes, id);
+        // printf("receiver - Contents of ptr = \n%s\n", (char *)buffptr);
         
-        
+        sem_wait(&semaphore_servo_shoot);
 
         change_servo_degree(SERVO1, degree);
-        delay_ns(100000000);
         degree+=10;
-        if (degree == 100)
+        if (degree >= 100)
         {
             degree = 0;
         }
         free(buffptr);
+        sem_post(&semaphore_servo_shoot);
     }
 
     GPIO::cleanup();
@@ -244,11 +260,10 @@ void *ServoShootService(void *args)
     int degree = 0;
     while (1)
     {
-
+        sem_wait(&semaphore_servo_shoot);
         printf("Shoot !!!! \n\r");
         // change_servo_degree(SERVO1, degree);
-        delay_ns(5000000000);
-
+        sem_post(&semaphore_face_detect);
     }
 
     GPIO::cleanup();
@@ -293,7 +308,7 @@ int main(int argc, const char **argv)
     mq_unlink(SNDRCV_MQ);  //Unlink if the previous message queue exists
 
     mymq = mq_open(SNDRCV_MQ, O_CREAT|O_RDWR, S_IRWXU, &mq_attr);
-    if(mymq == (mqd_t)ERROR)
+    if(mymq == (mqd_t)(-1))
     {
         perror("mq_open");
     }
