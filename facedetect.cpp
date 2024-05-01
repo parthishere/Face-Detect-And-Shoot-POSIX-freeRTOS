@@ -15,19 +15,21 @@
 #include <stdbool.h>
 #include <semaphore.h>
 #include <sys/time.h>
+#include <mqueue.h>
 
 #include <signal.h>
 
-#ifdef __arch64__
+#ifdef IS_JETSON_NANO
 
-#include <JetsonGPIO.h>
+#include <JetsonGPIO.h>+
 inline void delay_ns(int ns) { this_thread::sleep_for(chrono::nanoseconds(ns)); }
 
-void change_servo_degree(int output_pin, uint8_t degree){
-    if(degree > 180){
+void change_servo_degree(int output_pin, uint8_t degree)
+{
+    if (degree > 180)
+    {
         return;
     }
-    
 
     int turnon_us = (degree * 1000000) / 180;
     turnon_us += 1000000;
@@ -41,6 +43,11 @@ void change_servo_degree(int output_pin, uint8_t degree){
 #endif
 
 #define NUMBER_OF_TASKS 3
+
+#define SNDRCV_MQ "/send_receive_mq"
+
+struct mq_attr mq_attr;
+mqd_t mymq;
 
 #define SERVO1 18
 #define SERVO2 12
@@ -68,14 +75,15 @@ typedef struct
     int target_cpu;
 } RmTask_t;
 
-typedef struct{
+typedef struct
+{
     int x1;
     int y1;
     int x2;
     int y2;
 } Points_t;
 
-sem_t semaphore_10ms, semaphore_20ms;
+sem_t semaphore_face_detect, semaphore_servo_actuator, semaphore_servo_shoot;
 
 double read_time(double *var)
 {
@@ -92,81 +100,68 @@ double read_time(double *var)
     return (*var);
 }
 
-
-
-Points_t detectFaceOpenCVHaar(cv::CascadeClassifier faceCascade, cv::Mat &frameOpenCVHaar, int inHeight = 300, int inWidth = 0)
-{
-    int frameHeight = frameOpenCVHaar.rows;
-    int frameWidth = frameOpenCVHaar.cols;
-    if (!inWidth)
-        inWidth = (int)((frameWidth / (float)frameHeight) * inHeight);
-
-    float scaleHeight = frameHeight / (float)inHeight;
-    float scaleWidth = frameWidth / (float)inWidth;
-
-    cv::Mat frameOpenCVHaarSmall, frameGray;
-    cv::resize(frameOpenCVHaar, frameOpenCVHaarSmall, cv::Size(inWidth, inHeight));
-    cv::cvtColor(frameOpenCVHaarSmall, frameGray, cv::COLOR_BGR2GRAY);
-
+Points_t detectFaceOpenCVLBP(cv::CascadeClassifier faceCascade, cv::Mat &frameGray, int inHeight = 300, int inWidth = 0) {
     std::vector<cv::Rect> faces;
     faceCascade.detectMultiScale(frameGray, faces);
-
-    int x1, x2, y1, y2;
-    for (size_t i = 0; i < faces.size(); i++)
-    {
-        x1 = (int)(faces[i].x * scaleWidth);
-        y1 = (int)(faces[i].y * scaleHeight);
-        x2 = (int)((faces[i].x + faces[i].width) * scaleWidth);
-        y2 = (int)((faces[i].y + faces[i].height) * scaleHeight);
-        rectangle(frameOpenCVHaar, cv::Point(x1, y1), cv::Point(x2, y2), cv::Scalar(0, 255, 0), (int)(frameHeight / 150.0), 4);
+    
+    if (!faces.empty()) {
+        int x1 = faces[0].x;
+        int y1 = faces[0].y;
+        int x2 = faces[0].x + faces[0].width;
+        int y2 = faces[0].y + faces[0].height;
+        cv::rectangle(frameGray, cv::Point(x1, y1), cv::Point(x2, y2), cv::Scalar(0, 255, 0), 2);
+        return {x1, y1, x2, y2};
     }
-    return {x1, y1, x2, y2};
+    
+    return {0, 0, 0, 0};
 }
-
-
 
 void *FaceDetectService(void *args)
 {
     RmTask_t *task_parameters = (RmTask_t *)args;
-
-    faceCascadePath = "./haarcascade_frontalface_default.xml";
-    if (!faceCascade.load(faceCascadePath))
-    {
+    std::string faceCascadePath = "./lbpcascade_frontalface.xml";
+    cv::CascadeClassifier faceCascade;
+    
+    if (!faceCascade.load(faceCascadePath)) {
         printf("--(!)Error loading face cascade\n");
         return NULL;
     }
-
+    
     cv::VideoCapture source;
-
     source.open(0, cv::CAP_V4L);
-
-    cv::Mat frame;
-
-    double tt_opencvHaar = 0;
-    double fpsOpencvHaar = 0;
-
-    while (true)
-    {
+    
+    cv::Mat frame, frameGray;
+    cv::Size frameSize(640, 480);
+    
+    double tt_opencvLBP = 0;
+    double fpsOpencvLBP = 0;
+    
+    while (true) {
+        sem_wait(&semaphore_face_detect);
+        
         source >> frame;
         if (frame.empty())
             break;
-
+        
+        cv::resize(frame, frame, frameSize);
+        cv::cvtColor(frame, frameGray, cv::COLOR_BGR2GRAY);
+        
         double t = cv::getTickCount();
-        detectFaceOpenCVHaar(faceCascade, frame);
-        tt_opencvHaar = ((double)cv::getTickCount() - t) / cv::getTickFrequency();
-        fpsOpencvHaar = 1 / tt_opencvHaar;
-
-        cv::putText(frame, cv::format("OpenCV HAAR ; FPS = %.2f", fpsOpencvHaar), cv::Point(10, 50), cv::FONT_HERSHEY_SIMPLEX, 1.3, cv::Scalar(0, 0, 255), 4);
-
-        cv::imshow("OpenCV - HAAR Face Detection", frame);
-
+        detectFaceOpenCVLBP(faceCascade, frameGray);
+        tt_opencvLBP = ((double)cv::getTickCount() - t) / cv::getTickFrequency();
+        fpsOpencvLBP = 1 / tt_opencvLBP;
+        
+        printf("FPS: %.2f\n", fpsOpencvLBP);
+        cv::imshow("OpenCV - LBP Face Detection", frame);
+        
         int k = cv::waitKey(5);
-        if (k == 27)
-        {
-            cv::destroyAllWindows();
+        if (k == 27) {
             break;
         }
+        
     }
+
+    cv::destroyAllWindows();
     return NULL;
 }
 
@@ -193,7 +188,7 @@ void *ServoActuatorService(void *args)
     //     sleep(1);
     // }
 
-#ifdef __arch64__
+#ifdef IS_JETSON_NANO
 
     // Pin Setup.
     GPIO::setmode(GPIO::BCM);
@@ -205,12 +200,21 @@ void *ServoActuatorService(void *args)
     int degree = 0;
     while (1)
     {
+        memcpy(&buffptr, &buffer, sizeof(void *));
+        memcpy((void *)&id, &(buffer[sizeof(void *)]), sizeof(int));
+        printf("receiver - ptr msg 0x%p received with priority = %d, length = %d, id = %d\n", buffptr, prio, nbytes, id);
+        printf("receiver - Contents of ptr = \n%s\n", (char *)buffptr);
+        
+        
+
         change_servo_degree(SERVO1, degree);
-        delay_ns(1000000000);
-        degree++;
-        if(degree == 100) {
+        delay_ns(100000000);
+        degree+=10;
+        if (degree == 100)
+        {
             degree = 0;
         }
+        free(buffptr);
     }
 
     GPIO::cleanup();
@@ -228,23 +232,22 @@ void *ServoShootService(void *args)
     double execution_complete_time_for_a_loop;
     double execution_start_time_for_a_loop;
 
-#ifdef __arch64__
+#ifdef IS_JETSON_NANO
     // Pin Setup.
     GPIO::setmode(GPIO::BCM);
     // set pin as an output pin with optional initial state of HIGH
-    GPIO::setup(SERVO1, GPIO::OUT, GPIO::HIGH);
+    GPIO::setup(SERVO2, GPIO::OUT, GPIO::HIGH);
 
     cout << "Strating Thread 2 now! Press CTRL+C to exit" << endl;
     int curr_value = GPIO::HIGH;
     int degree = 0;
     while (1)
     {
-        change_servo_degree(SERVO1, degree);
-        delay_ns(2000000000);
-        degree++;
-        if(degree == 100) {
-            degree = 0;
-        }
+
+        printf("Shoot !!!! \n\r");
+        // change_servo_degree(SERVO1, degree);
+        delay_ns(5000000000);
+
     }
 
     GPIO::cleanup();
@@ -280,6 +283,20 @@ int main(int argc, const char **argv)
     pthread_t threads[NUMBER_OF_TASKS];
     cpu_set_t threadcpu;
 
+    /* setup common message q attributes */
+    mq_attr.mq_maxmsg = 10;
+    mq_attr.mq_msgsize = sizeof(void *)+sizeof(int);
+
+    mq_attr.mq_flags = 0;
+
+    mq_unlink(SNDRCV_MQ);  //Unlink if the previous message queue exists
+
+    mymq = mq_open(SNDRCV_MQ, O_CREAT|O_RDWR, S_IRWXU, &mq_attr);
+    if(mymq == (mqd_t)ERROR)
+    {
+        perror("mq_open");
+    }
+
     int rt_max_prio = sched_get_priority_max(SCHED_FIFO);
     int rt_min_prio = sched_get_priority_min(SCHED_FIFO);
 
@@ -291,30 +308,15 @@ int main(int argc, const char **argv)
         //  .thread = threads[0],
         //  .thread_args = {0},
         //  .target_cpu = 2},
-         {20, 10, {rt_max_prio}, &FaceDetectService, threads[0], {0}, NULL, tasks[0].attribute, 1},
-
-        // {.period = 50,
-        //  .burst_time = 20,
-        //  .priority_param = {rt_max_prio - 1},
-        //  .thread_handle = &ServoActuatorService,
-        //  .thread = threads[1],
-        //  .thread_args = {1},
-        //  .target_cpu = 0},
+        {20, 10, {rt_max_prio}, &FaceDetectService, threads[0], {0}, NULL, tasks[0].attribute, 1},
         {50, 20, {rt_max_prio - 1}, &ServoActuatorService, threads[1], {1}, NULL, tasks[1].attribute, 0},
-
-        // {.period = 50,
-        //  .burst_time = 20,
-        //  .priority_param = {rt_max_prio - 2},
-        //  .thread_handle = &ServoShootService,
-        //  .thread = threads[2],
-        //  .thread_args = {2},
-        //  .target_cpu = 0}
         {50, 20, {rt_max_prio - 2}, &ServoShootService, threads[2], {2}, NULL, tasks[2].attribute, 0}
 
     };
     // Initialize Semaphore
-    sem_init(&semaphore_10ms, false, 1);
-    sem_init(&semaphore_20ms, false, 1);
+    sem_init(&semaphore_face_detect, false, 1);
+    sem_init(&semaphore_servo_actuator, false, 1);
+    sem_init(&semaphore_servo_shoot, false, 1);
 
     pthread_attr_t attribute_flags_for_main; // for schedular type, priority
     struct sched_param main_priority_param;
@@ -388,7 +390,11 @@ int main(int argc, const char **argv)
         perror("attr destroy");
     if (pthread_attr_destroy(&tasks[1].attribute) != 0)
         perror("attr destroy");
+    if (pthread_attr_destroy(&tasks[2].attribute) != 0)
+        perror("attr destroy");
 
-    sem_destroy(&semaphore_10ms);
-    sem_destroy(&semaphore_20ms);
+
+    sem_destroy(&semaphore_face_detect);
+    sem_destroy(&semaphore_servo_actuator);
+    sem_destroy(&semaphore_servo_shoot);
 }
