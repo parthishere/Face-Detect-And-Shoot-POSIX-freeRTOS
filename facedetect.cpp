@@ -21,7 +21,8 @@
 
 #ifdef IS_JETSON_NANO
 
-#include <JetsonGPIO.h>+
+#include <JetsonGPIO.h>
+
 inline void delay_ns(int ns) { this_thread::sleep_for(chrono::nanoseconds(ns)); }
 
 void change_servo_degree(int output_pin, uint8_t degree)
