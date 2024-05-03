@@ -19,9 +19,7 @@
 
 #include <signal.h>
 
-// #define HEIGHT 640
 #define HEIGHT 320
-// #define WIDTH 480
 #define WIDTH 240
 
 #ifdef IS_JETSON_NANO
@@ -39,21 +37,21 @@ void change_servo_degree(int output_pin, uint8_t degree)
 
     int turnon_us = (degree * 1000000) / 180;
     turnon_us += 1000000;
-    int turnoff_us = (2000000) - turnon_us;
+    // int turnoff_us = (2000000) - turnon_us;
     GPIO::output(output_pin, GPIO::HIGH);
     delay_ns(turnon_us);
     GPIO::output(output_pin, GPIO::LOW);
-    delay_ns(turnoff_us);
+    // delay_ns(turnoff_us);
 }
 
 #endif
 
 #define NUMBER_OF_TASKS 3
 
-#define SNDRCV_MQ "/send_receive_mq"
+#define CUSTOM_MQ_NAME "/send_receive_mq"
 
 struct mq_attr mq_attr;
-mqd_t mymq;
+mqd_t message_queue_instance;
 
 #define SERVO1 18
 #define SERVO2 12
@@ -106,25 +104,19 @@ double read_time(double *var)
     return (*var);
 }
 
-Points_t detectFaceOpenCVLBP(cv::CascadeClassifier faceCascade, cv::Mat &frameGray, int inHeight = 300, int inWidth = 0) {
+Points_t detectFaceOpenCVLBP(cv::CascadeClassifier faceCascade, cv::Mat &frameGray, int inHeight = 300, int inWidth = 0)
+{
     std::vector<cv::Rect> faces;
     faceCascade.detectMultiScale(frameGray, faces);
-    
-    // for (int i=0; i<faces.size(); i++) {
-    //      int x1 = faces[i].x; 
-    //      int y1 = faces[i].y; 
-    //      int x2 = faces[i].x + faces[i].width; 
-    //      int y2 = faces[i].y + faces[i].height; 
-    //      cv::rectangle(frameGray, cv::Point(x1, y1), cv::Point(x2, y2), cv::Scalar(0, 255, 0), 2); 
-    // } 
 
-    if (!faces.empty()) {
+    if (!faces.empty())
+    {
         int x1 = faces[0].x;
         int y1 = faces[0].y;
         int x2 = faces[0].x + faces[0].width;
         int y2 = faces[0].y + faces[0].height;
         cv::rectangle(frameGray, cv::Point(x1, y1), cv::Point(x2, y2), cv::Scalar(0, 255, 0), 2);
-        // return {x1, y1, x2, y2};
+        return {x1, y1, x2, y2};
     }
     return {0, 0, 0, 0};
 }
@@ -133,15 +125,13 @@ void *FaceDetectService(void *args)
 {
     RmTask_t *task_parameters = (RmTask_t *)args;
 
-
     struct sched_param schedule_param;
     int policy, cpucore;
     pthread_t thread;
     cpu_set_t cpuset;
 
-
-    thread=pthread_self();
-    cpucore=sched_getcpu();
+    thread = pthread_self();
+    cpucore = sched_getcpu();
 
     pthread_getschedparam(pthread_self(), &policy, &schedule_param);
     CPU_ZERO(&cpuset);
@@ -149,53 +139,75 @@ void *FaceDetectService(void *args)
 
     std::string faceCascadePath = "./lbpcascade_frontalface.xml";
     cv::CascadeClassifier faceCascade;
-    
-    if (!faceCascade.load(faceCascadePath)) {
+
+    if (!faceCascade.load(faceCascadePath))
+    {
         printf("--(!)Error loading face cascade\n");
         return NULL;
     }
-    
+
     cv::VideoCapture source;
     source.open(0, cv::CAP_V4L);
-    
+
     cv::Mat frame, frameGray;
     cv::Size frameSize(HEIGHT, WIDTH);
-    
-    double tt_opencvLBP = 0;
-    double fpsOpencvLBP = 0;
 
-    
-    
-    while (true) {
-        
-        //sem_wait(&semaphore_face_detect);
-        
+    double start_ms;
+    double end_ms;
+    double fps, execute_ms;
+
+    while (true)
+    {
+
+        // sem_wait(&semaphore_face_detect);
+        read_time(&start_ms);
+
         source >> frame;
         if (frame.empty())
             break;
         cv::imshow("Original Frame", frame);
         cv::resize(frame, frame, frameSize);
         cv::cvtColor(frame, frameGray, cv::COLOR_BGR2GRAY);
-        
-        double t = cv::getTickCount();
-        Points_t face_points =  detectFaceOpenCVLBP(faceCascade, frameGray);
-        tt_opencvLBP = ((double)cv::getTickCount() - t) / cv::getTickFrequency();
-        fpsOpencvLBP = 1 / tt_opencvLBP;
-        
-        printf("FPS: %.2f\n, current time from start 1s 2ms, execution time for one frame 10ms", fpsOpencvLBP);
+
+        Points_t face_points = detectFaceOpenCVLBP(faceCascade, frameGray);
+
         cv::imshow("OpenCV - LBP Face Detection", frameGray);
-        
-        if(face_points.x1 != 0 && face_points.x2 != 0){
-            // send points to queue;
+
+        if (face_points.x1 != 0 && face_points.x2 != 0)
+        {
+            // Allocate memory for the Points_t structure
+            Points_t *points_buffer_ptr = (Points_t *)malloc(sizeof(Points_t));
+
+            // Copy the face_points data into the allocated memory
+            memcpy(points_buffer_ptr, &face_points, sizeof(Points_t));
+
+            printf("sender - Message to send | X1 = %d X2 = %d Y1 = %d Y2 = %d | Sending message of size = %lu\n",
+                   points_buffer_ptr->x1, points_buffer_ptr->x2, points_buffer_ptr->y1, points_buffer_ptr->y2, sizeof(Points_t));
+
+            // Send the message containing the Points_t structure
+            if (mq_send(message_queue_instance, (const char *)points_buffer_ptr, sizeof(Points_t), 0) == -1)
+            {
+                perror("mq_send");
+                free(points_buffer_ptr);
+            }
+            else
+            {
+                printf("sender - message ptr %p successfully sent\n", points_buffer_ptr);
+            }
         }
+        read_time(&end_ms);
+        execute_ms = (end_ms - start_ms);
+        fps = 1 / execute_ms;
+
+        printf("FPS: %.2f, current time from start 1s 2ms, execution time for one frame 10ms\n", execute_ms);
 
         int k = cv::waitKey(5);
-        if (k == 27) {
-            //set flag
+        if (k == 27)
+        {
+            // set flag
             break;
         }
         sem_post(&semaphore_servo_actuator);
-        
     }
 
     cv::destroyAllWindows();
@@ -213,54 +225,57 @@ void *ServoActuatorService(void *args)
     double execution_complete_time_for_a_loop;
     double execution_start_time_for_a_loop;
 
-    // while (1)
-    // {
-    //     read_time(&execution_start_time_for_a_loop);
-    //     // sem_wait(&semaphore_10ms);
+    void *points_data_buffer;
+    Points_t points_data;
+    int prio;
+    int nbytes;
+    int id;
 
-    //     printf("Actuation Service will execute\n");
-
-    thread=pthread_self();
-    cpucore=sched_getcpu();
+    thread = pthread_self();
+    cpucore = sched_getcpu();
 
     pthread_getschedparam(pthread_self(), &policy, &schedule_param);
     CPU_ZERO(&cpuset);
     pthread_getaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
 
-    //     read_time(&execution_complete_time_for_a_loop);
-
-    //     // printf("Thread10 | priority = %d | time stamp(arrival) %lf msec | CPU burst time : %lf \n", schedule_param.sched_priority, (execution_start_time_for_a_loop - overall_start_time), (execution_complete_time_for_a_loop - execution_start_time_for_a_loop));
-    //     sleep(1);
-    // }
-
+    
+    
 #ifdef IS_JETSON_NANO
 
     // Pin Setup.
     GPIO::setmode(GPIO::BCM);
     // set pin as an output pin with optional initial state of HIGH
     GPIO::setup(SERVO1, GPIO::OUT, GPIO::HIGH);
-
-    cout << "Strating THread 1 now! Press CTRL+C to exit" << endl;
+    std::cout << "Starting Thread 1 now! Press CTRL+C to exit" << std::endl;
     int curr_value = GPIO::HIGH;
     int degree = 0;
     while (1)
     {
 
-        // memcpy(&buffptr, &buffer, sizeof(void *));
-        // memcpy((void *)&id, &(buffer[sizeof(void *)]), sizeof(int));
-        // printf("receiver - ptr msg 0x%p received with priority = %d, length = %d, id = %d\n", buffptr, prio, nbytes, id);
-        // printf("receiver - Contents of ptr = \n%s\n", (char *)buffptr);
-        // wait for queue 
-        // sem_wait(&semaphore_servo_shoot);
+        Points_t received_points;
+        ssize_t received_size = mq_receive(message_queue_instance, (char *)&received_points, sizeof(Points_t), NULL);
 
-        change_servo_degree(SERVO1, degree);
-        degree+=10;
-        if (degree >= 100)
+        if (received_size == -1)
         {
-            degree = 0;
+            perror("mq_receive");
         }
-        free(buffptr);
-        sem_post(&semaphore_servo_shoot);
+
+        else
+        {
+            printf("receiver - Received message | X1 = %d X2 = %d Y1 = %d Y2 = %d | Received message of size = %ld\n",
+                   received_points.x1, received_points.x2, received_points.y1, received_points.y2, received_size);
+            
+
+            change_servo_degree(SERVO1, degree);
+            degree += 10;
+            if (degree >= 100)
+            {
+                degree = 0;
+            }
+
+            free(points_data_buffer);
+            sem_post(&semaphore_servo_shoot);
+        }
     }
 
     GPIO::cleanup();
@@ -273,31 +288,30 @@ void *ServoShootService(void *args)
 {
     RmTask_t *task_parameters = (RmTask_t *)args;
 
-
     double execution_complete_time_for_a_loop;
     double execution_start_time_for_a_loop;
-
 
     struct sched_param schedule_param;
     int policy, cpucore;
     pthread_t thread;
     cpu_set_t cpuset;
 
-
-    thread=pthread_self();
-    cpucore=sched_getcpu();
+    thread = pthread_self();
+    cpucore = sched_getcpu();
 
     pthread_getschedparam(pthread_self(), &policy, &schedule_param);
     CPU_ZERO(&cpuset);
     pthread_getaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
+
+    
 
 #ifdef IS_JETSON_NANO
     // Pin Setup.
     GPIO::setmode(GPIO::BCM);
     // set pin as an output pin with optional initial state of HIGH
     GPIO::setup(SERVO2, GPIO::OUT, GPIO::HIGH);
+    std::cout << "Starting Thread 2 now! Press CTRL+C to exit" << std::endl;
 
-    cout << "Strating Thread 2 now! Press CTRL+C to exit" << endl;
     int curr_value = GPIO::HIGH;
     int degree = 0;
     while (1)
@@ -343,14 +357,13 @@ int main(int argc, const char **argv)
 
     /* setup common message q attributes */
     mq_attr.mq_maxmsg = 10;
-    mq_attr.mq_msgsize = sizeof(void *)+sizeof(int);
-
+    mq_attr.mq_msgsize = sizeof(Points_t);
     mq_attr.mq_flags = 0;
 
-    mq_unlink(SNDRCV_MQ);  //Unlink if the previous message queue exists
+    mq_unlink(CUSTOM_MQ_NAME); // Unlink if the previous message queue exists
 
-    mymq = mq_open(SNDRCV_MQ, O_CREAT|O_RDWR, S_IRWXU, &mq_attr);
-    if(mymq == (mqd_t)(-1))
+    message_queue_instance = mq_open(CUSTOM_MQ_NAME, O_CREAT | O_RDWR, S_IRWXU, &mq_attr);
+    if (message_queue_instance == (mqd_t)(-1))
     {
         perror("mq_open");
     }
@@ -450,7 +463,6 @@ int main(int argc, const char **argv)
         perror("attr destroy");
     if (pthread_attr_destroy(&tasks[2].attribute) != 0)
         perror("attr destroy");
-
 
     sem_destroy(&semaphore_face_detect);
     sem_destroy(&semaphore_servo_actuator);
