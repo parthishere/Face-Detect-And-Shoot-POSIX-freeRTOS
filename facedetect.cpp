@@ -293,7 +293,11 @@ void *FaceDetectService(void *args)
         int k = cv::waitKey(5);
         if (k == 27)
         {
-            exit_flag = true;
+
+            exit_flag = 1;
+            sem_post(&semaphore_face_detect);
+            sem_post(&semaphore_servo_actuator);
+            sem_post(&semaphore_servo_shoot);
             // set flag
             break;
         }
@@ -461,17 +465,6 @@ void print_scheduler(void)
     }
 }
 
-void sigint_handler(int signum)
-{
-    exit_flag = 1;
-    sem_post(&semaphore_face_detect);
-    sem_post(&semaphore_servo_actuator);
-    sem_post(&semaphore_servo_shoot);
-#ifdef IS_RPI
-    gpioTerminate();
-#endif // DEBUG
-}
-
 int main(int argc, const char **argv)
 {
 
@@ -489,7 +482,7 @@ int main(int argc, const char **argv)
     std::cout << "Linux System " << std::endl;
 
 #endif
-    signal(SIGINT, sigint_handler);
+
 
     pthread_t threads[NUMBER_OF_TASKS];
     cpu_set_t threadcpu;
@@ -614,4 +607,8 @@ int main(int argc, const char **argv)
     sem_destroy(&semaphore_face_detect);
     sem_destroy(&semaphore_servo_actuator);
     sem_destroy(&semaphore_servo_shoot);
+
+#ifdef IS_RPI
+    gpioTerminate();
+#endif
 }
