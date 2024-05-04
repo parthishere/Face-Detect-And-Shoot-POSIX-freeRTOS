@@ -356,8 +356,8 @@ void *ServoActuatorService(void *args)
             center_x = (received_points.x1 + received_points.x2) / 2;
             center_y = (received_points.y1 + received_points.y2) / 2;
             
-            angle_pan = atan(((320.0 - 189.0) / 160.0)) * (180.0/M_PI);
-            angle_tilt = atan(((320.0 - 102.0) / 160.0)) * (180.0/M_PI);
+            angle_pan = atan(((320.0 - center_x) / 160.0)) * (180.0/M_PI);
+            angle_tilt = atan(((320.0 - center_y) / 160.0)) * (180.0/M_PI);
 
             angle_pan_int = (int)angle_pan;
             angle_tilt_int = (int)angle_tilt;
@@ -365,8 +365,8 @@ void *ServoActuatorService(void *args)
             printf("Angle pan %d Angle tilt %d\n\r", angle_pan_int, angle_tilt_int);
             
 
-            change_servo_degree(SERVO1_PIN, angle_pan);
-            change_servo_degree(SERVO2_PIN, angle_tilt);
+            change_servo_degree(SERVO1_PIN, angle_pan_int);
+            change_servo_degree(SERVO2_PIN, angle_tilt_int);
 
             read_time(&execution_complete_time_for_a_loop);
 
