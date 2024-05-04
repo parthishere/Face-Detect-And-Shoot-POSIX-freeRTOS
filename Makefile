@@ -2,8 +2,8 @@ INCLUDE_DIRS = -I/usr/include/opencv4
 LIB_DIRS = 
 CC=g++
 
-CDEFS=
-CFLAGS= -O0 -g $(INCLUDE_DIRS) $(CDEFS)
+CDEFS= 
+CFLAGS= -O0 -g $(INCLUDE_DIRS) $(CDEFS) 
 LDFLAGS= -Wl,-Map,output.map
 LIBS= -L/usr/lib -lopencv_core -lopencv_flann -lopencv_video -lrt -lpthread
 
@@ -15,6 +15,10 @@ OBJS= ${CFILES:.cpp=.o}
 
 # Name of binary
 MAIN = facedetect
+
+ifeq ($(IS_JETSON_NANO),1)
+    CFLAGS += -DIS_JETSON_NANO
+endif
 
 run: $(MAIN)
 	@sudo ./$(MAIN) $(ARGS)

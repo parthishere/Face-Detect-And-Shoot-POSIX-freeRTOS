@@ -22,11 +22,42 @@
 #define HEIGHT 320
 #define WIDTH 240
 
-#ifdef IS_JETSON_NANO
+#define NANOSEC_PER_SEC 1000000000
+
+
+#ifdef IS_JETSON_NANO 
 
 #include <JetsonGPIO.h>
 
-inline void delay_ns(int ns) { this_thread::sleep_for(chrono::nanoseconds(ns)); }
+void delay_ns(int ns) 
+{ 
+
+    double residual;
+    struct timeval current_time_val;
+    struct timespec delay_time = {0, ns}; // delay for 33.33 msec, 30 Hz
+    struct timespec remaining_time;
+    int rc
+
+    gettimeofday(&current_time_val, (struct timezone *)0);
+    
+    rc = nanosleep(&delay_time, &remaining_time);
+
+    if (rc == EINTR)
+    {
+        residual = remaining_time.tv_sec + ((double)remaining_time.tv_nsec / (double)NANOSEC_PER_SEC);
+
+        if (residual > 0.0)
+            printf("residual=%lf, sec=%d, nsec=%d\n", residual, (int)remaining_time.tv_sec, (int)remaining_time.tv_nsec);
+
+    }
+    else if (rc < 0)
+    {
+        perror("delay_ns nanosleep");
+        exit(-1);
+    }
+
+
+}
 
 void change_servo_degree(int output_pin, uint8_t degree)
 {
@@ -60,6 +91,11 @@ mqd_t message_queue_instance;
 cv::String faceCascadePath;
 cv::CascadeClassifier faceCascade;
 double overall_start_time, overall_stop_time;
+
+double wcet_servo_actuation;
+double wcet_servo_shoot;
+double wcet_face_recognition;
+
 
 typedef struct
 {
@@ -351,7 +387,11 @@ void print_scheduler(void)
 
 int main(int argc, const char **argv)
 {
-
+#ifdef IS_JETSON_NANO
+std::cout << "Jeson nano "<< std::endl;
+#else
+std::cout << "Linux System "<< std::endl;
+#endif
     pthread_t threads[NUMBER_OF_TASKS];
     cpu_set_t threadcpu;
 
