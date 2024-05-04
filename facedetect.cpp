@@ -16,38 +16,39 @@
 #include <semaphore.h>
 #include <sys/time.h>
 #include <mqueue.h>
+#include <math.h>
+#include <signal.h>
 
 /*
 * Example 9
-* C: 35 4 3 
-* T: 50 100 100 
-* D: 50 50 50 
-* 
+* C: 35 4 3
+* T: 50 100 100
+* D: 50 50 50
+*
 * Task 0, WCET=35, Period=50, Utility Sum = 0.700000
 * Task 1, WCET=4, Period=100, Utility Sum = 0.740000
 * Task 2, WCET=3, Period=100, Utility Sum = 0.770000
-* 
+*
 * Total Utility Sum = 0.770000
 * LUB = 0.779763
 * RM LUB: Feasible
 * Completion time feasibility: Feasible
 * Scheduling point feasibility: Feasible
 * Deadline monotonic: Feasible
-* 
+*
 * (Period)
-* Total utility in EDF: 0.770000 Which is less than 1.0 
+* Total utility in EDF: 0.770000 Which is less than 1.0
 * EDF on Period: Feasible
-* Total utility in LLF: 0.770000 Which is less than 1.0 
+* Total utility in LLF: 0.770000 Which is less than 1.0
 * LLF on Period: Feasible
 
 * (Deadline)
-* Total utility in EDF: 0.840000 Which is less than 1.0 
+* Total utility in EDF: 0.840000 Which is less than 1.0
 * EDF on Deadline: Feasible
-* Total utility in LLF: 0.840000 Which is less than 1.0 
+* Total utility in LLF: 0.840000 Which is less than 1.0
 * LLF on Deadline: Feasible
-* 
+*
 */
-
 
 #define FRAME_HEIGHT 320
 #define FRAME_WIDTH 240
@@ -75,7 +76,7 @@ double wcet_servo_actuation;
 double wcet_servo_shoot;
 double wcet_face_recognition;
 
-static bool execution_complete = false;
+volatile sig_atomic_t exit_flag = 0;
 
 #ifdef IS_RPI
 
@@ -231,10 +232,10 @@ void *FaceDetectService(void *args)
     double end_ms;
     double fps, execute_ms;
 
-    while (true)
+    while (!exit_flag)
     {
 
-        //sem_wait(&semaphore_face_detect);
+        // sem_wait(&semaphore_face_detect);
         read_time(&start_ms);
 
         source >> frame;
@@ -291,11 +292,10 @@ void *FaceDetectService(void *args)
         int k = cv::waitKey(5);
         if (k == 27)
         {
-            execution_complete = true;
+            exit_flag = true;
             // set flag
             break;
         }
-        
     }
 
 #ifdef IS_RPI
@@ -325,20 +325,24 @@ void *ServoActuatorService(void *args)
     pthread_getaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
 
     int center_x, center_y;
-    int degree = 0;
+    double angle_pan = 0;
+    double angle_tilt = 0;
 
 #ifdef IS_RPI
 
     std::cout << "Starting Thread 1 now! Press CTRL+C to exit" << std::endl;
 
-    while (!execution_complete)
+    while (!exit_flag)
     {
 
         Points_t received_points;
         ssize_t received_size = mq_receive(message_queue_instance, (char *)&received_points, sizeof(Points_t), NULL);
 
-        if (received_size == -1)
-        {
+        if (received_size == -1) {
+            if (errno == EINTR) {
+                // Interrupted by signal, check exit_flag and continue if not set
+                continue;
+            }
             perror("mq_receive");
         }
 
@@ -350,16 +354,15 @@ void *ServoActuatorService(void *args)
 
             center_x = (received_points.x1 + received_points.x2) / 2;
             center_y = (received_points.y1 + received_points.y2) / 2;
-            degree = ((degree + 10) % 180);
+            printf("Center X %d Center Y %d\n\r", center_x, center_y);
+            // angle_pan = atan((center_x - 1/))
 
-            change_servo_degree(SERVO1_PIN, degree);
-            change_servo_degree(SERVO2_PIN, degree);
+            change_servo_degree(SERVO1_PIN, angle_pan);
+            change_servo_degree(SERVO2_PIN, angle_tilt);
 
-            
             read_time(&execution_complete_time_for_a_loop);
 
             double execution_time = execution_complete_time_for_a_loop - execution_start_time_for_a_loop;
-            
 
             printf("Execution time for Servo Actuation service is : %f ms\n", execution_time);
 
@@ -403,14 +406,13 @@ void *ServoShootService(void *args)
     std::cout << "Starting Thread 2 now! Press CTRL+C to exit" << std::endl;
 
     int degree = 0;
-    while (!execution_complete)
+    while (!exit_flag)
     {
 
         sem_wait(&semaphore_servo_shoot);
         read_time(&execution_start_time_for_a_loop);
         printf("Shoot !!!! \n\r");
         // change_servo_degree(SERVO1, degree);
-        
 
         gpioWrite(LASER_PIN, 1);
 
@@ -454,6 +456,14 @@ void print_scheduler(void)
     }
 }
 
+void sigint_handler(int signum)
+{
+    exit_flag = 1;
+    sem_post(&semaphore_face_detect);
+    sem_post(&semaphore_servo_actuator);
+    sem_post(&semaphore_servo_shoot);
+}
+
 int main(int argc, const char **argv)
 {
 
@@ -463,7 +473,7 @@ int main(int argc, const char **argv)
 
     if (gpioInitialise() < 0)
         return -1;
-    
+
     gpioSetMode(LASER_PIN, PI_OUTPUT);
 
 #else
@@ -471,6 +481,8 @@ int main(int argc, const char **argv)
     std::cout << "Linux System " << std::endl;
 
 #endif
+    signal(SIGINT, sigint_handler);
+
     pthread_t threads[NUMBER_OF_TASKS];
     cpu_set_t threadcpu;
 
@@ -575,6 +587,14 @@ int main(int argc, const char **argv)
     {
         pthread_join(tasks[i].thread, &tasks[i].return_Value);
     }
+
+    // Cleanup actions
+    mq_close(message_queue_instance);
+    mq_unlink(CUSTOM_MQ_NAME);
+
+#ifdef IS_RPI
+    gpioTerminate();
+#endif
 
     if (pthread_attr_destroy(&tasks[0].attribute) != 0)
         perror("attr destroy");
