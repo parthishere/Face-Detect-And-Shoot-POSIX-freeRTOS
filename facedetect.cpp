@@ -17,65 +17,15 @@
 #include <sys/time.h>
 #include <mqueue.h>
 
-#include <signal.h>
-
-#define HEIGHT 320
-#define WIDTH 240
+#define FRAME_HEIGHT 320
+#define FRAME_WIDTH 240
 
 #define NANOSEC_PER_SEC 1000000000
 
-
-#ifdef IS_JETSON_NANO 
-
-#include <JetsonGPIO.h>
-
-void delay_ns(int ns) 
-{ 
-
-    double residual;
-    struct timeval current_time_val;
-    struct timespec delay_time = {0, ns}; // delay for 33.33 msec, 30 Hz
-    struct timespec remaining_time;
-    int rc
-
-    gettimeofday(&current_time_val, (struct timezone *)0);
-    
-    rc = nanosleep(&delay_time, &remaining_time);
-
-    if (rc == EINTR)
-    {
-        residual = remaining_time.tv_sec + ((double)remaining_time.tv_nsec / (double)NANOSEC_PER_SEC);
-
-        if (residual > 0.0)
-            printf("residual=%lf, sec=%d, nsec=%d\n", residual, (int)remaining_time.tv_sec, (int)remaining_time.tv_nsec);
-
-    }
-    else if (rc < 0)
-    {
-        perror("delay_ns nanosleep");
-        exit(-1);
-    }
-
-
-}
-
-void change_servo_degree(int output_pin, uint8_t degree)
-{
-    if (degree > 180)
-    {
-        return;
-    }
-
-    int turnon_us = (degree * 1000000) / 180;
-    turnon_us += 1000000;
-    // int turnoff_us = (2000000) - turnon_us;
-    GPIO::output(output_pin, GPIO::HIGH);
-    delay_ns(turnon_us);
-    GPIO::output(output_pin, GPIO::LOW);
-    // delay_ns(turnoff_us);
-}
-
-#endif
+#define OVERALL_DEADLINE 190
+#define FACE_DETECTION_DEADLINE 100
+#define SERVO_ACTUATION_DEADLINE 50
+#define SERVO_SHOOT_DEADLINE 40
 
 #define NUMBER_OF_TASKS 3
 
@@ -83,9 +33,6 @@ void change_servo_degree(int output_pin, uint8_t degree)
 
 struct mq_attr mq_attr;
 mqd_t message_queue_instance;
-
-#define SERVO1 18
-#define SERVO2 12
 
 /** Global variables */
 cv::String faceCascadePath;
@@ -96,6 +43,39 @@ double wcet_servo_actuation;
 double wcet_servo_shoot;
 double wcet_face_recognition;
 
+static bool execution_complete = false;
+
+#ifdef IS_RPI
+
+#define NUM_GPIO 32
+
+#define SERVO1_PIN 4
+#define SERVO2_PIN 23
+#define LASER_PIN 18
+
+#define MIN_WIDTH 1000
+#define MAX_WIDTH 2000
+#define SERVO_RANGE 180
+
+#include <pigpio.h>
+
+void change_servo_degree(int output_pin, uint8_t degree)
+{
+    if (degree < 0)
+    {
+        degree = 0;
+    }
+    else if (degree > SERVO_RANGE)
+    {
+        degree = SERVO_RANGE;
+    }
+
+    int pwmWidth = MIN_WIDTH + (degree * (MAX_WIDTH - MIN_WIDTH) / SERVO_RANGE);
+
+    gpioServo(output_pin, pwmWidth);
+}
+
+#endif
 
 typedef struct
 {
@@ -138,6 +118,33 @@ double read_time(double *var)
         *var = ((double)(((double)tv.tv_sec * 1000) + (((double)tv.tv_usec) / 1000.0)));
     }
     return (*var);
+}
+
+void delay_ns(int ns)
+{
+
+    double residual;
+    struct timeval current_time_val;
+    struct timespec delay_time = {0, ns}; // delay for 33.33 msec, 30 Hz
+    struct timespec remaining_time;
+    int rc;
+
+    gettimeofday(&current_time_val, (struct timezone *)0);
+
+    rc = nanosleep(&delay_time, &remaining_time);
+
+    if (rc == EINTR)
+    {
+        residual = remaining_time.tv_sec + ((double)remaining_time.tv_nsec / (double)NANOSEC_PER_SEC);
+
+        if (residual > 0.0)
+            printf("residual=%lf, sec=%d, nsec=%d\n", residual, (int)remaining_time.tv_sec, (int)remaining_time.tv_nsec);
+    }
+    else if (rc < 0)
+    {
+        perror("delay_ns nanosleep");
+        exit(-1);
+    }
 }
 
 Points_t detectFaceOpenCVLBP(cv::CascadeClassifier faceCascade, cv::Mat &frameGray, int inHeight = 300, int inWidth = 0)
@@ -186,7 +193,7 @@ void *FaceDetectService(void *args)
     source.open(0, cv::CAP_V4L);
 
     cv::Mat frame, frameGray;
-    cv::Size frameSize(HEIGHT, WIDTH);
+    cv::Size frameSize(FRAME_HEIGHT, FRAME_WIDTH);
 
     double start_ms;
     double end_ms;
@@ -195,7 +202,7 @@ void *FaceDetectService(void *args)
     while (true)
     {
 
-        // sem_wait(&semaphore_face_detect);
+        sem_wait(&semaphore_face_detect);
         read_time(&start_ms);
 
         source >> frame;
@@ -231,20 +238,37 @@ void *FaceDetectService(void *args)
                 printf("sender - message ptr %p successfully sent\n", points_buffer_ptr);
             }
         }
+        else
+        {
+#ifdef IS_RPI
+            gpioWrite(LASER_PIN, 0);
+#endif
+        }
+
         read_time(&end_ms);
         execute_ms = (end_ms - start_ms);
-        fps = 1 / execute_ms;
+        fps = 1000 / execute_ms;
 
-        printf("FPS: %.2f, current time from start 1s 2ms, execution time for one frame 10ms\n", execute_ms);
+        if (wcet_face_recognition < execute_ms)
+        {
+            wcet_face_recognition = execute_ms;
+        }
+
+        printf("FPS: %.2f execution time : %f, current time from start 1s 2ms, execution time for one frame 10ms\n", fps, execute_ms);
 
         int k = cv::waitKey(5);
         if (k == 27)
         {
+            execution_complete = true;
             // set flag
             break;
         }
-        sem_post(&semaphore_servo_actuator);
+        
     }
+
+#ifdef IS_RPI
+    gpioTerminate();
+#endif
 
     cv::destroyAllWindows();
     return NULL;
@@ -261,12 +285,6 @@ void *ServoActuatorService(void *args)
     double execution_complete_time_for_a_loop;
     double execution_start_time_for_a_loop;
 
-    void *points_data_buffer;
-    Points_t points_data;
-    int prio;
-    int nbytes;
-    int id;
-
     thread = pthread_self();
     cpucore = sched_getcpu();
 
@@ -274,18 +292,14 @@ void *ServoActuatorService(void *args)
     CPU_ZERO(&cpuset);
     pthread_getaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
 
-    
-    
-#ifdef IS_JETSON_NANO
-
-    // Pin Setup.
-    GPIO::setmode(GPIO::BCM);
-    // set pin as an output pin with optional initial state of HIGH
-    GPIO::setup(SERVO1, GPIO::OUT, GPIO::HIGH);
-    std::cout << "Starting Thread 1 now! Press CTRL+C to exit" << std::endl;
-    int curr_value = GPIO::HIGH;
+    int center_x, center_y;
     int degree = 0;
-    while (1)
+
+#ifdef IS_RPI
+
+    std::cout << "Starting Thread 1 now! Press CTRL+C to exit" << std::endl;
+
+    while (!execution_complete)
     {
 
         Points_t received_points;
@@ -298,23 +312,35 @@ void *ServoActuatorService(void *args)
 
         else
         {
+            read_time(&execution_start_time_for_a_loop);
             printf("receiver - Received message | X1 = %d X2 = %d Y1 = %d Y2 = %d | Received message of size = %ld\n",
                    received_points.x1, received_points.x2, received_points.y1, received_points.y2, received_size);
-            
 
-            change_servo_degree(SERVO1, degree);
-            degree += 10;
-            if (degree >= 100)
+            center_x = (received_points.x1 + received_points.x2) / 2;
+            center_y = (received_points.y1 + received_points.y2) / 2;
+            degree = ((degree + 10) % 180);
+
+            change_servo_degree(SERVO1_PIN, degree);
+            change_servo_degree(SERVO2_PIN, degree);
+
+            free(received_points);
+
+            double execution_time = execution_complete_time_for_a_loop - execution_start_time_for_a_loop;
+            read_time(&execution_complete_time_for_a_loop);
+
+            printf("Execution time for Servo Actuation service is : %f ms\n", execution_time);
+
+            if (wcet_servo_actuation < execution_time)
             {
-                degree = 0;
+                wcet_servo_actuation = execution_time;
             }
 
-            free(points_data_buffer);
             sem_post(&semaphore_servo_shoot);
         }
     }
 
-    GPIO::cleanup();
+    gpioTerminate();
+
 #endif
 
     return NULL;
@@ -339,26 +365,33 @@ void *ServoShootService(void *args)
     CPU_ZERO(&cpuset);
     pthread_getaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
 
-    
+#ifdef IS_RPI
 
-#ifdef IS_JETSON_NANO
-    // Pin Setup.
-    GPIO::setmode(GPIO::BCM);
-    // set pin as an output pin with optional initial state of HIGH
-    GPIO::setup(SERVO2, GPIO::OUT, GPIO::HIGH);
     std::cout << "Starting Thread 2 now! Press CTRL+C to exit" << std::endl;
 
-    int curr_value = GPIO::HIGH;
     int degree = 0;
-    while (1)
+    while (!execution_complete)
     {
+
         sem_wait(&semaphore_servo_shoot);
+        read_time(&execution_start_time_for_a_loop);
         printf("Shoot !!!! \n\r");
         // change_servo_degree(SERVO1, degree);
+        double execution_time = execution_complete_time_for_a_loop - execution_start_time_for_a_loop;
+
+        gpioWrite(LASER_PIN, 1);
+
+        read_time(&execution_complete_time_for_a_loop);
+        printf("Execution time for Servo Shoot service is : %f ms\n", execution_time);
+
+        if (wcet_servo_shoot < execution_time)
+        {
+            wcet_servo_shoot = execution_time;
+        }
+
         sem_post(&semaphore_face_detect);
     }
-
-    GPIO::cleanup();
+    gpioTerminate();
 
 #endif
 
@@ -387,10 +420,20 @@ void print_scheduler(void)
 
 int main(int argc, const char **argv)
 {
-#ifdef IS_JETSON_NANO
-std::cout << "Jeson nano "<< std::endl;
+
+#ifdef IS_RPI
+
+    std::cout << "Raspberry PI " << std::endl;
+
+    if (gpioInitialise() < 0)
+        return -1;
+    
+    gpioSetMode(LASER_PIN, PI_OUTPUT);
+
 #else
-std::cout << "Linux System "<< std::endl;
+
+    std::cout << "Linux System " << std::endl;
+
 #endif
     pthread_t threads[NUMBER_OF_TASKS];
     cpu_set_t threadcpu;

@@ -16,8 +16,8 @@ OBJS= ${CFILES:.cpp=.o}
 # Name of binary
 MAIN = facedetect
 
-ifeq ($(IS_JETSON_NANO),1)
-    CFLAGS += -DIS_JETSON_NANO
+ifeq ($(IS_RPI),1)
+    CFLAGS += -DIS_RPI
 endif
 
 run: $(MAIN)
