@@ -17,6 +17,38 @@
 #include <sys/time.h>
 #include <mqueue.h>
 
+/*
+* Example 9
+* C: 35 4 3 
+* T: 50 100 100 
+* D: 50 50 50 
+* 
+* Task 0, WCET=35, Period=50, Utility Sum = 0.700000
+* Task 1, WCET=4, Period=100, Utility Sum = 0.740000
+* Task 2, WCET=3, Period=100, Utility Sum = 0.770000
+* 
+* Total Utility Sum = 0.770000
+* LUB = 0.779763
+* RM LUB: Feasible
+* Completion time feasibility: Feasible
+* Scheduling point feasibility: Feasible
+* Deadline monotonic: Feasible
+* 
+* (Period)
+* Total utility in EDF: 0.770000 Which is less than 1.0 
+* EDF on Period: Feasible
+* Total utility in LLF: 0.770000 Which is less than 1.0 
+* LLF on Period: Feasible
+
+* (Deadline)
+* Total utility in EDF: 0.840000 Which is less than 1.0 
+* EDF on Deadline: Feasible
+* Total utility in LLF: 0.840000 Which is less than 1.0 
+* LLF on Deadline: Feasible
+* 
+*/
+
+
 #define FRAME_HEIGHT 320
 #define FRAME_WIDTH 240
 
