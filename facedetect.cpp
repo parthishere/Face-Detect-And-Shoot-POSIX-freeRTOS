@@ -202,7 +202,7 @@ void *FaceDetectService(void *args)
     while (true)
     {
 
-        sem_wait(&semaphore_face_detect);
+        //sem_wait(&semaphore_face_detect);
         read_time(&start_ms);
 
         source >> frame;
@@ -323,10 +323,11 @@ void *ServoActuatorService(void *args)
             change_servo_degree(SERVO1_PIN, degree);
             change_servo_degree(SERVO2_PIN, degree);
 
-            free(received_points);
+            
+            read_time(&execution_complete_time_for_a_loop);
 
             double execution_time = execution_complete_time_for_a_loop - execution_start_time_for_a_loop;
-            read_time(&execution_complete_time_for_a_loop);
+            
 
             printf("Execution time for Servo Actuation service is : %f ms\n", execution_time);
 
@@ -377,11 +378,14 @@ void *ServoShootService(void *args)
         read_time(&execution_start_time_for_a_loop);
         printf("Shoot !!!! \n\r");
         // change_servo_degree(SERVO1, degree);
-        double execution_time = execution_complete_time_for_a_loop - execution_start_time_for_a_loop;
+        
 
         gpioWrite(LASER_PIN, 1);
 
         read_time(&execution_complete_time_for_a_loop);
+
+        double execution_time = execution_complete_time_for_a_loop - execution_start_time_for_a_loop;
+
         printf("Execution time for Servo Shoot service is : %f ms\n", execution_time);
 
         if (wcet_servo_shoot < execution_time)
