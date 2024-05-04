@@ -260,6 +260,7 @@ void *FaceDetectService(void *args)
             printf("sender - Message to send | X1 = %d X2 = %d Y1 = %d Y2 = %d | Sending message of size = %lu\n",
                    points_buffer_ptr->x1, points_buffer_ptr->x2, points_buffer_ptr->y1, points_buffer_ptr->y2, sizeof(Points_t));
 
+            
             // Send the message containing the Points_t structure
             if (mq_send(message_queue_instance, (const char *)points_buffer_ptr, sizeof(Points_t), 0) == -1)
             {
@@ -298,10 +299,6 @@ void *FaceDetectService(void *args)
         }
     }
 
-#ifdef IS_RPI
-    gpioTerminate();
-#endif
-
     cv::destroyAllWindows();
     return NULL;
 }
@@ -338,8 +335,10 @@ void *ServoActuatorService(void *args)
         Points_t received_points;
         ssize_t received_size = mq_receive(message_queue_instance, (char *)&received_points, sizeof(Points_t), NULL);
 
-        if (received_size == -1) {
-            if (errno == EINTR) {
+        if (received_size == -1)
+        {
+            if (errno == EINTR)
+            {
                 // Interrupted by signal, check exit_flag and continue if not set
                 continue;
             }
@@ -354,8 +353,11 @@ void *ServoActuatorService(void *args)
 
             center_x = (received_points.x1 + received_points.x2) / 2;
             center_y = (received_points.y1 + received_points.y2) / 2;
+            
+            angle_pan = atan(((320 - center_x) / 160)) * (M_PI/180.0);
+            angle_tilt = atan(((320 - center_y) / 160)) * (M_PI/180.0);
             printf("Center X %d Center Y %d\n\r", center_x, center_y);
-            // angle_pan = atan((center_x - 1/))
+            printf("angle pan %d angle tilt %d\n\r", angle_pan, angle_tilt);
 
             change_servo_degree(SERVO1_PIN, angle_pan);
             change_servo_degree(SERVO2_PIN, angle_tilt);
@@ -374,8 +376,6 @@ void *ServoActuatorService(void *args)
             sem_post(&semaphore_servo_shoot);
         }
     }
-
-    gpioTerminate();
 
 #endif
 
@@ -429,7 +429,6 @@ void *ServoShootService(void *args)
 
         sem_post(&semaphore_face_detect);
     }
-    gpioTerminate();
 
 #endif
 
@@ -462,6 +461,9 @@ void sigint_handler(int signum)
     sem_post(&semaphore_face_detect);
     sem_post(&semaphore_servo_actuator);
     sem_post(&semaphore_servo_shoot);
+#ifdef IS_RPI
+    gpioTerminate();
+#endif // DEBUG
 }
 
 int main(int argc, const char **argv)
