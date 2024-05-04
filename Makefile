@@ -15,10 +15,13 @@ OBJS= ${CFILES:.cpp=.o}
 
 # Name of binary
 MAIN = facedetect
+OTHER = servo_test
 
 ifeq ($(IS_RPI),1)
     CFLAGS += -DIS_RPI
+	LIBS += -lpigpio
 endif
+
 
 run: $(MAIN)
 	@sudo ./$(MAIN) $(ARGS)
@@ -28,7 +31,10 @@ all: clean $(MAIN) run
 
 clean:
 	-rm -f *.o *.d
-	-rm -f $(MAIN) 
+	-rm -f $(MAIN) $(OTHER)
+
+$(OTHER): servo_test.o
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $@.o $(LIBS)
 
 $(MAIN): facedetect.o
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $@.o `pkg-config --libs opencv4` $(LIBS)
