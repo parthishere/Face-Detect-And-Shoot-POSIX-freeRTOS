@@ -259,7 +259,7 @@ void *FaceDetectService(void *args)
 
             printf("sender - Message to send | X1 = %d X2 = %d Y1 = %d Y2 = %d | Sending message of size = %lu\n",
                    points_buffer_ptr->x1, points_buffer_ptr->x2, points_buffer_ptr->y1, points_buffer_ptr->y2, sizeof(Points_t));
-
+ 
             
             // Send the message containing the Points_t structure
             if (mq_send(message_queue_instance, (const char *)points_buffer_ptr, sizeof(Points_t), 0) == -1)
@@ -324,6 +324,8 @@ void *ServoActuatorService(void *args)
     int center_x, center_y;
     double angle_pan = 0;
     double angle_tilt = 0;
+    int angle_pan_int;
+    int angle_tilt_int;
 
 #ifdef IS_RPI
 
@@ -354,10 +356,14 @@ void *ServoActuatorService(void *args)
             center_x = (received_points.x1 + received_points.x2) / 2;
             center_y = (received_points.y1 + received_points.y2) / 2;
             
-            angle_pan = atan(((320 - center_x) / 160)) * (M_PI/180.0);
-            angle_tilt = atan(((320 - center_y) / 160)) * (M_PI/180.0);
-            printf("Center X %d Center Y %d\n\r", center_x, center_y);
-            printf("angle pan %d angle tilt %d\n\r", angle_pan, angle_tilt);
+            angle_pan = atan(((320.0 - 189.0) / 160.0)) * (180.0/M_PI);
+            angle_tilt = atan(((320.0 - 102.0) / 160.0)) * (180.0/M_PI);
+
+            angle_pan_int = (int)angle_pan;
+            angle_tilt_int = (int)angle_tilt;
+
+            printf("Angle pan %d Angle tilt %d\n\r", angle_pan_int, angle_tilt_int);
+            
 
             change_servo_degree(SERVO1_PIN, angle_pan);
             change_servo_degree(SERVO2_PIN, angle_tilt);
