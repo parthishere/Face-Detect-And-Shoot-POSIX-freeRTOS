@@ -361,7 +361,7 @@ void *ServoActuatorService(void *args)
             center_y = (received_points.y1 + received_points.y2) / 2;
             
             angle_pan = atan(((320.0 - center_x) / 160.0)) * (180.0/M_PI);
-            angle_tilt = atan(((320.0 - center_y) / 160.0)) * (180.0/M_PI);
+            angle_tilt = atan(((240.0 - center_y) / 160.0)) * (180.0/M_PI);
 
             angle_pan_int = (int)angle_pan;
             angle_tilt_int = (int)angle_tilt;
