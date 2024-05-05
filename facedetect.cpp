@@ -306,10 +306,6 @@ void *FaceDetectService(void *args)
             mq_send(message_queue_instance, (const char *)points_buffer_ptr, sizeof(Points_t), 0);
             sem_post(&semaphore_servo_shoot);
             // set flag
-
-#ifdef IS_RPI
-            gpioWrite(LASER_PIN, 0);
-#endif
             break;
         }
     }
@@ -476,6 +472,9 @@ void *ServoShootService(void *args)
         sem_post(&semaphore_face_detect);
     } while (!exit_flag);
     printf("Servo shoot service ended !\n\r");
+
+    gpioWrite(LASER_PIN, 0);
+
 #endif
 
     return NULL;
