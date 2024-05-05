@@ -71,12 +71,19 @@ mqd_t message_queue_instance;
 cv::String faceCascadePath;
 cv::CascadeClassifier faceCascade;
 double overall_start_time, overall_stop_time;
+double face_recognition_start_ms;
+double face_recognition_end_ms;
 
 double wcet_servo_actuation;
 double wcet_servo_shoot;
 double wcet_face_recognition;
 
-volatile sig_atomic_t exit_flag = 0;
+int overall_deadline_miss;
+int face_detection_deadline_miss;
+int servo_actuation_deadline_miss;
+int servo_shoot_deadline_miss;
+
+volatile bool exit_flag = false;
 
 #ifdef IS_RPI
 
@@ -228,15 +235,14 @@ void *FaceDetectService(void *args)
     cv::Mat frame, frameGray;
     cv::Size frameSize(FRAME_HEIGHT, FRAME_WIDTH);
 
-    double start_ms;
-    double end_ms;
+    
     double fps, execute_ms;
 
     while (!exit_flag)
     {
 
         // sem_wait(&semaphore_face_detect);
-        read_time(&start_ms);
+        read_time(&face_recognition_start_ms);
 
         source >> frame;
         if (frame.empty())
@@ -257,20 +263,14 @@ void *FaceDetectService(void *args)
             // Copy the face_points data into the allocated memory
             memcpy(points_buffer_ptr, &face_points, sizeof(Points_t));
 
-            printf("sender - Message to send | X1 = %d X2 = %d Y1 = %d Y2 = %d | Sending message of size = %lu\n",
-                   points_buffer_ptr->x1, points_buffer_ptr->x2, points_buffer_ptr->y1, points_buffer_ptr->y2, sizeof(Points_t));
- 
-            
+
             // Send the message containing the Points_t structure
             if (mq_send(message_queue_instance, (const char *)points_buffer_ptr, sizeof(Points_t), 0) == -1)
             {
                 perror("mq_send");
                 free(points_buffer_ptr);
             }
-            else
-            {
-                printf("sender - message ptr %p successfully sent\n", points_buffer_ptr);
-            }
+
         }
         else
         {
@@ -279,29 +279,37 @@ void *FaceDetectService(void *args)
 #endif
         }
 
-        read_time(&end_ms);
-        execute_ms = (end_ms - start_ms);
+        read_time(&face_recognition_end_ms);
+        execute_ms = (face_recognition_end_ms - face_recognition_start_ms);
         fps = 1000 / execute_ms;
 
         if (wcet_face_recognition < execute_ms)
         {
             wcet_face_recognition = execute_ms;
         }
+        if (execute_ms > FACE_DETECTION_DEADLINE)
+        {
+            face_detection_deadline_miss++;
+        }
 
-        printf("FPS: %.2f execution time : %f, current time from start 1s 2ms, execution time for one frame 10ms\n", fps, execute_ms);
-
+        printf("| FPS                             | %.2f       |\n", fps);
+        printf("| Execution Time                  | %.2f ms    |\n\n", execute_ms);
+        
         int k = cv::waitKey(5);
         if (k == 27)
         {
+            Points_t *points_buffer_ptr = (Points_t *)malloc(sizeof(Points_t));
+            memcpy(points_buffer_ptr, &face_points, sizeof(Points_t));
 
-            exit_flag = 1;
+            exit_flag = true;
             sem_post(&semaphore_face_detect);
-            sem_post(&semaphore_servo_actuator);
+            mq_send(message_queue_instance, (const char *)points_buffer_ptr, sizeof(Points_t), 0);
             sem_post(&semaphore_servo_shoot);
             // set flag
             break;
         }
     }
+    printf("Face Detection service ended !\n\r");
 
     cv::destroyAllWindows();
     return NULL;
@@ -354,28 +362,28 @@ void *ServoActuatorService(void *args)
         else
         {
             read_time(&execution_start_time_for_a_loop);
-            printf("receiver - Received message | X1 = %d X2 = %d Y1 = %d Y2 = %d | Received message of size = %ld\n",
-                   received_points.x1, received_points.x2, received_points.y1, received_points.y2, received_size);
+            // printf("receiver - Received message | X1 = %d X2 = %d Y1 = %d Y2 = %d | Received message of size = %ld\n",
+            //        received_points.x1, received_points.x2, received_points.y1, received_points.y2, received_size);
 
             center_x = (received_points.x1 + received_points.x2) / 2;
             center_y = (received_points.y1 + received_points.y2) / 2;
-            
-            if(center_x > 160){
-                angle_pan = atan(((320.0 - center_x) / 160.0)) * (180.0/M_PI);
+
+            if (center_x > 160)
+            {
+                angle_pan = atan(((320.0 - center_x) / 160.0)) * (180.0 / M_PI);
             }
-            else{
-                printf("Other Half\n\r");
+            else
+            {
                 angle_pan = atan(((160.0 - center_x) / 160.0)) * (180.0 / M_PI);
                 angle_pan = 50 + angle_pan;
             }
-            
-            angle_tilt = atan(((240.0 - center_y) / 160.0)) * (180.0/M_PI);
+
+            angle_tilt = atan(((240.0 - center_y) / 160.0)) * (180.0 / M_PI);
 
             angle_pan_int = (int)angle_pan;
             angle_tilt_int = (int)angle_tilt;
 
-            printf("Angle pan %d Angle tilt %d\n\r", angle_pan_int, angle_tilt_int);
-            
+            // printf("Angle pan %d Angle tilt %d\n\r", angle_pan_int, angle_tilt_int);
 
             change_servo_degree(SERVO1_PIN, angle_pan_int);
             change_servo_degree(SERVO2_PIN, angle_tilt_int);
@@ -384,16 +392,21 @@ void *ServoActuatorService(void *args)
 
             double execution_time = execution_complete_time_for_a_loop - execution_start_time_for_a_loop;
 
-            printf("Execution time for Servo Actuation service is : %f ms\n", execution_time);
+            printf("| Execution time for Servo Actuation      | %.2f ms    |\n\n", execution_time);
 
             if (wcet_servo_actuation < execution_time)
             {
                 wcet_servo_actuation = execution_time;
             }
+            if (execution_time > SERVO_ACTUATION_DEADLINE)
+            {
+                servo_actuation_deadline_miss++;
+            }
 
             sem_post(&semaphore_servo_shoot);
         }
-    }while (!exit_flag);
+    } while (!exit_flag);
+    printf("Servo Actuation service ended !\n\r");
 
 #endif
 
@@ -404,8 +417,8 @@ void *ServoShootService(void *args)
 {
     RmTask_t *task_parameters = (RmTask_t *)args;
 
-    double execution_complete_time_for_a_loop;
-    double execution_start_time_for_a_loop;
+    double execution_complete_time_for_a_servo_shoot;
+    double execution_start_time_for_a_servo_shoot;
 
     struct sched_param schedule_param;
     int policy, cpucore;
@@ -428,26 +441,37 @@ void *ServoShootService(void *args)
     {
 
         sem_wait(&semaphore_servo_shoot);
-        read_time(&execution_start_time_for_a_loop);
-        printf("Shoot !!!! \n\r");
-        // change_servo_degree(SERVO1, degree);
+
+        read_time(&execution_start_time_for_a_servo_shoot);
 
         gpioWrite(LASER_PIN, 1);
 
-        read_time(&execution_complete_time_for_a_loop);
+        read_time(&execution_complete_time_for_a_servo_shoot);
 
-        double execution_time = execution_complete_time_for_a_loop - execution_start_time_for_a_loop;
+        double execution_time = execution_complete_time_for_a_servo_shoot - execution_start_time_for_a_servo_shoot;
 
-        printf("Execution time for Servo Shoot service is : %f ms\n", execution_time);
+        double overall_response_time = execution_complete_time_for_a_servo_shoot - face_recognition_start_ms;
+        
 
+        printf("| Execution time for Servo Shoot          | %.2f ms    |\n", execution_time);
+        printf("| Overall response time                   | %.2f ms    |\n\n", overall_response_time);
+        
         if (wcet_servo_shoot < execution_time)
         {
             wcet_servo_shoot = execution_time;
         }
+        if (execution_time > SERVO_SHOOT_DEADLINE)
+        {
+            servo_shoot_deadline_miss++;
+        }
+        if (overall_response_time > OVERALL_DEADLINE)
+        {
+            overall_deadline_miss++;
+        }
 
         sem_post(&semaphore_face_detect);
-    }while (!exit_flag);
-
+    } while (!exit_flag);
+    printf("Servo shoot service ended !\n\r");
 #endif
 
     return NULL;
@@ -490,7 +514,6 @@ int main(int argc, const char **argv)
     std::cout << "Linux System " << std::endl;
 
 #endif
-
 
     pthread_t threads[NUMBER_OF_TASKS];
     cpu_set_t threadcpu;
