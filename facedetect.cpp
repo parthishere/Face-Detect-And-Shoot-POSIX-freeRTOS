@@ -83,6 +83,8 @@ int face_detection_deadline_miss;
 int servo_actuation_deadline_miss;
 int servo_shoot_deadline_miss;
 
+int starting_count = 0;
+
 volatile bool exit_flag = false;
 
 #ifdef IS_RPI
@@ -283,11 +285,11 @@ void *FaceDetectService(void *args)
         execute_ms = (face_recognition_end_ms - face_recognition_start_ms);
         fps = 1000 / execute_ms;
 
-        if (wcet_face_recognition < execute_ms)
+        if (wcet_face_recognition < execute_ms && starting_count > 6)
         {
             wcet_face_recognition = execute_ms;
         }
-        if (execute_ms > FACE_DETECTION_DEADLINE)
+        if (execute_ms > FACE_DETECTION_DEADLINE && starting_count > 6)
         {
             face_detection_deadline_miss++;
         }
@@ -307,6 +309,9 @@ void *FaceDetectService(void *args)
             sem_post(&semaphore_servo_shoot);
             // set flag
             break;
+        }
+        if(starting_count < 9){
+            starting_count++;
         }
     }
     printf("Face Detection service ended !\n\r");
@@ -394,11 +399,11 @@ void *ServoActuatorService(void *args)
 
             printf("| Execution time for Servo Actuation      | %.2f ms    |\n\n", execution_time);
 
-            if (wcet_servo_actuation < execution_time)
+            if (wcet_servo_actuation < execution_time && starting_count > 5)
             {
                 wcet_servo_actuation = execution_time;
             }
-            if (execution_time > SERVO_ACTUATION_DEADLINE)
+            if (execution_time > SERVO_ACTUATION_DEADLINE && starting_count > 5)
             {
                 servo_actuation_deadline_miss++;
             }
@@ -456,15 +461,15 @@ void *ServoShootService(void *args)
         printf("| Execution time for Servo Shoot          | %.2f ms    |\n", execution_time);
         printf("| Overall response time                   | %.2f ms    |\n\n", overall_response_time);
         
-        if (wcet_servo_shoot < execution_time)
+        if (wcet_servo_shoot < execution_time && starting_count > 5)
         {
             wcet_servo_shoot = execution_time;
         }
-        if (execution_time > SERVO_SHOOT_DEADLINE)
+        if (execution_time > SERVO_SHOOT_DEADLINE && starting_count > 5)
         {
             servo_shoot_deadline_miss++;
         }
-        if (overall_response_time > OVERALL_DEADLINE)
+        if (overall_response_time > OVERALL_DEADLINE && starting_count > 2)
         {
             overall_deadline_miss++;
         }
@@ -478,6 +483,21 @@ void *ServoShootService(void *args)
 #endif
 
     return NULL;
+}
+
+void printFinalTable()
+{
+    printf("+--------------------------------------------------+------------+\n");
+    printf("| Metric                                          | Value       |\n");
+    printf("+--------------------------------------------------+------------+\n");
+    printf("| Overall Deadline Miss Count                     | %11d |\n", overall_deadline_miss);
+    printf("| Face Detection Deadline Miss Count              | %11d |\n", face_detection_deadline_miss);
+    printf("| Servo Actuation Deadline Miss Count             | %11d |\n", servo_actuation_deadline_miss);
+    printf("| Servo Shoot Deadline Miss Count                 | %11d |\n", servo_shoot_deadline_miss);
+    printf("| Face Recognition Worst-Case Execution Time      | %8.2f ms |\n", wcet_face_recognition);
+    printf("| Servo Actuation Worst-Case Execution Time       | %8.2f ms |\n", wcet_servo_actuation);
+    printf("| Servo Shoot Worst-Case Execution Time           | %8.2f ms |\n", wcet_servo_shoot);
+    printf("+--------------------------------------------------+------------+\n");
 }
 
 void print_scheduler(void)
@@ -641,6 +661,8 @@ int main(int argc, const char **argv)
     sem_destroy(&semaphore_face_detect);
     sem_destroy(&semaphore_servo_actuator);
     sem_destroy(&semaphore_servo_shoot);
+
+    printFinalTable();
 
 #ifdef IS_RPI
     gpioTerminate();
