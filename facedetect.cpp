@@ -284,17 +284,17 @@ void *FaceDetectService(void *args)
         execute_ms = (face_recognition_end_ms - face_recognition_start_ms);
         fps = 1000 / execute_ms;
 
-        if (wcet_face_recognition < execute_ms && starting_count > 6)
+        if (wcet_face_recognition < execute_ms && starting_count > 5)
         {
             wcet_face_recognition = execute_ms;
         }
-        if (execute_ms > FACE_DETECTION_DEADLINE && starting_count > 6)
+        if (execute_ms > FACE_DETECTION_DEADLINE && starting_count > 5)
         {
             face_detection_deadline_miss++;
         }
 
-        printf("| FPS                             | %.2f       |\n", fps);
-        printf("| Execution Time                  | %.2f ms    |\n\n", execute_ms);
+        // printf("| FPS                             | %.2f       |\n", fps);
+        // printf("| Execution Time                  | %.2f ms    |\n\n", execute_ms);
 
         int k = cv::waitKey(5);
         if (k == 27)
@@ -399,7 +399,7 @@ void *ServoActuatorService(void *args)
 
             double execution_time = execution_complete_time_for_a_loop - execution_start_time_for_a_loop;
 
-            printf("| Execution time for Servo Actuation      | %.2f ms    |\n\n", execution_time);
+            // printf("| Execution time for Servo Actuation      | %.2f ms    |\n\n", execution_time);
 
             if (wcet_servo_actuation < execution_time && starting_count > 5)
             {
@@ -459,8 +459,8 @@ void *ServoShootService(void *args)
 
         double overall_response_time = execution_complete_time_for_a_servo_shoot - face_recognition_start_ms;
 
-        printf("| Execution time for Servo Shoot          | %.2f ms    |\n", execution_time);
-        printf("| Overall response time                   | %.2f ms    |\n\n", overall_response_time);
+        // printf("| Execution time for Servo Shoot          | %.2f ms    |\n", execution_time);
+        // printf("| Overall response time                   | %.2f ms    |\n\n", overall_response_time);
 
         if (wcet_servo_shoot < execution_time && starting_count > 5)
         {
@@ -470,7 +470,7 @@ void *ServoShootService(void *args)
         {
             servo_shoot_deadline_miss++;
         }
-        if (overall_response_time > OVERALL_DEADLINE && starting_count > 2)
+        if (overall_response_time > OVERALL_DEADLINE && starting_count > 5)
         {
             overall_deadline_miss++;
         }
