@@ -78,6 +78,7 @@ double face_recognition_end_ms;
 double wcet_servo_actuation;
 double wcet_servo_shoot;
 double wcet_face_recognition;
+double wcet_overall;
 
 int overall_deadline_miss;
 int face_detection_deadline_miss;
@@ -244,7 +245,6 @@ void *FaceDetectService(void *args)
     while (!exit_flag)
     {
 
-
         read_time(&face_recognition_start_ms);
 
         source >> frame;
@@ -303,14 +303,14 @@ void *FaceDetectService(void *args)
             memcpy(points_buffer_ptr, &face_points, sizeof(Points_t));
 
             exit_flag = true;
-        
+
             sem_post(&semaphore_face_detect);
             mq_send(message_queue_instance, (const char *)points_buffer_ptr, sizeof(Points_t), 0);
             sem_post(&semaphore_servo_shoot);
             // set flag
             break;
         }
-        
+
         if (starting_count < 9)
         {
             starting_count++;
@@ -474,6 +474,10 @@ void *ServoShootService(void *args)
         {
             overall_deadline_miss++;
         }
+        if (overall_response_time > wcet_overall && starting_count > 5)
+        {
+            wcet_overall = overall_response_time;
+        }
 
         sem_post(&semaphore_face_detect);
     } while (!exit_flag);
@@ -498,6 +502,7 @@ void printFinalTable()
     printf("| Face Recognition Worst-Case Execution Time      | %8.2f ms |\n", wcet_face_recognition);
     printf("| Servo Actuation Worst-Case Execution Time       | %8.2f ms |\n", wcet_servo_actuation);
     printf("| Servo Shoot Worst-Case Execution Time           | %8.2f ms |\n", wcet_servo_shoot);
+    printf("| OverAll Response Worst-Case Execution Time      | %8.2f ms |\n", wcet_overall);
     printf("+--------------------------------------------------+------------+\n");
 }
 
