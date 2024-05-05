@@ -335,7 +335,7 @@ void *ServoActuatorService(void *args)
 
     std::cout << "Starting Thread 1 now! Press CTRL+C to exit" << std::endl;
 
-    while (!exit_flag)
+    do
     {
 
         Points_t received_points;
@@ -360,7 +360,15 @@ void *ServoActuatorService(void *args)
             center_x = (received_points.x1 + received_points.x2) / 2;
             center_y = (received_points.y1 + received_points.y2) / 2;
             
-            angle_pan = atan(((320.0 - center_x) / 160.0)) * (180.0/M_PI);
+            if(center_x > 160){
+                angle_pan = atan(((320.0 - center_x) / 160.0)) * (180.0/M_PI);
+            }
+            else{
+                printf("Other Half\n\r");
+                angle_pan = atan(((160.0 - center_x) / 160.0)) * (180.0 / M_PI);
+                angle_pan = 50 + angle_pan;
+            }
+            
             angle_tilt = atan(((240.0 - center_y) / 160.0)) * (180.0/M_PI);
 
             angle_pan_int = (int)angle_pan;
@@ -385,7 +393,7 @@ void *ServoActuatorService(void *args)
 
             sem_post(&semaphore_servo_shoot);
         }
-    }
+    }while (!exit_flag);
 
 #endif
 
@@ -416,7 +424,7 @@ void *ServoShootService(void *args)
     std::cout << "Starting Thread 2 now! Press CTRL+C to exit" << std::endl;
 
     int degree = 0;
-    while (!exit_flag)
+    do
     {
 
         sem_wait(&semaphore_servo_shoot);
@@ -438,7 +446,7 @@ void *ServoShootService(void *args)
         }
 
         sem_post(&semaphore_face_detect);
-    }
+    }while (!exit_flag);
 
 #endif
 
