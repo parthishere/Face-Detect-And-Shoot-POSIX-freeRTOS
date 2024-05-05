@@ -474,7 +474,7 @@ void *ServoShootService(void *args)
         {
             overall_deadline_miss++;
         }
-        if (overall_response_time > wcet_overall && starting_count > 5)
+        if (overall_response_time > wcet_overall && starting_count > 5 && !exit_flag)
         {
             wcet_overall = overall_response_time;
         }
