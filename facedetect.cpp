@@ -18,6 +18,7 @@
 #include <mqueue.h>
 #include <math.h>
 #include <signal.h>
+#include <atomic>
 
 /*
 * Example 9
@@ -86,6 +87,7 @@ int servo_shoot_deadline_miss;
 int starting_count = 0;
 
 volatile bool exit_flag = false;
+std::atomic<bool> stop_timer = false;
 
 #ifdef IS_RPI
 
@@ -237,7 +239,6 @@ void *FaceDetectService(void *args)
     cv::Mat frame, frameGray;
     cv::Size frameSize(FRAME_HEIGHT, FRAME_WIDTH);
 
-    
     double fps, execute_ms;
 
     while (!exit_flag)
@@ -265,14 +266,12 @@ void *FaceDetectService(void *args)
             // Copy the face_points data into the allocated memory
             memcpy(points_buffer_ptr, &face_points, sizeof(Points_t));
 
-
             // Send the message containing the Points_t structure
             if (mq_send(message_queue_instance, (const char *)points_buffer_ptr, sizeof(Points_t), 0) == -1)
             {
                 perror("mq_send");
                 free(points_buffer_ptr);
             }
-
         }
         else
         {
@@ -296,7 +295,7 @@ void *FaceDetectService(void *args)
 
         printf("| FPS                             | %.2f       |\n", fps);
         printf("| Execution Time                  | %.2f ms    |\n\n", execute_ms);
-        
+
         int k = cv::waitKey(5);
         if (k == 27)
         {
@@ -304,13 +303,16 @@ void *FaceDetectService(void *args)
             memcpy(points_buffer_ptr, &face_points, sizeof(Points_t));
 
             exit_flag = true;
+        
             sem_post(&semaphore_face_detect);
             mq_send(message_queue_instance, (const char *)points_buffer_ptr, sizeof(Points_t), 0);
             sem_post(&semaphore_servo_shoot);
             // set flag
             break;
         }
-        if(starting_count < 9){
+        
+        if (starting_count < 9)
+        {
             starting_count++;
         }
     }
@@ -456,11 +458,10 @@ void *ServoShootService(void *args)
         double execution_time = execution_complete_time_for_a_servo_shoot - execution_start_time_for_a_servo_shoot;
 
         double overall_response_time = execution_complete_time_for_a_servo_shoot - face_recognition_start_ms;
-        
 
         printf("| Execution time for Servo Shoot          | %.2f ms    |\n", execution_time);
         printf("| Overall response time                   | %.2f ms    |\n\n", overall_response_time);
-        
+
         if (wcet_servo_shoot < execution_time && starting_count > 5)
         {
             wcet_servo_shoot = execution_time;
