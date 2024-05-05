@@ -244,7 +244,7 @@ void *FaceDetectService(void *args)
     while (!exit_flag)
     {
 
-        // sem_wait(&semaphore_face_detect);
+
         read_time(&face_recognition_start_ms);
 
         source >> frame;
