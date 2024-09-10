@@ -192,6 +192,60 @@ void delay_ns(int ns)
     }
 }
 
+
+
+void *Sequencer(void *threadp)
+{
+    struct timeval current_time_val;
+    struct timespec delay_time = {0, 50000000}; // delay for 33.33 msec, 30 Hz
+    struct timespec remaining_time;
+    double current_time;
+    double residual;
+    int rc, delay_cnt = 0;
+    unsigned long long seqCnt = 0;
+
+    gettimeofday(&current_time_val, (struct timezone *)0);
+    syslog(LOG_CRIT, "Sequencer thread @ sec=%d, msec=%d\n", (int)(current_time_val.tv_sec - start_time_val.tv_sec), (int)current_time_val.tv_usec / USEC_PER_MSEC);
+    printf("Sequencer thread @ sec=%d, msec=%d\n", (int)(current_time_val.tv_sec - start_time_val.tv_sec), (int)current_time_val.tv_usec / USEC_PER_MSEC);
+
+    do
+    {
+        delay_cnt = 0;
+        residual = 0.0;
+
+        gettimeofday(&current_time_val, (struct timezone *)0);
+        syslog(LOG_CRIT, "Sequencer thread prior to delay @ sec=%d, msec=%d\n", (int)(current_time_val.tv_sec - start_time_val.tv_sec), (int)current_time_val.tv_usec / USEC_PER_MSEC);
+
+        delay_ns(50000000);
+
+        seqCnt++;
+        gettimeofday(&current_time_val, (struct timezone *)0);
+        syslog(LOG_CRIT, "Sequencer cycle %llu @ sec=%d, msec=%d\n", seqCnt, (int)(current_time_val.tv_sec - start_time_val.tv_sec), (int)current_time_val.tv_usec / USEC_PER_MSEC);
+
+        
+        syslog(LOG_CRIT, "Task 1 (Frame Sampler thread) Released \n");
+        sem_post(&semaphore_face_detect); // Frame Sampler thread
+    
+        syslog(LOG_CRIT, "Task 2 (Servo Actuation) Released \n");
+        sem_post(&semaphore_servo_actuator); // Time-stamp with Image Analysis thread
+    
+        syslog(LOG_CRIT, "Task 3 (Servo Shoot) Released \n");
+        sem_post(&semaphore_servo_shoot); // Difference Image Proc thread
+        
+        gettimeofday(&current_time_val, NULL);
+        syslog(LOG_CRIT, "Sequencer release all sub-services @ sec=%d, msec=%d\n", (int)(current_time_val.tv_sec - start_time_val.tv_sec), (int)current_time_val.tv_usec / USEC_PER_MSEC);
+
+    } while (!!exit_flag);
+
+    sem_post(&semaphore_face_detect);
+    sem_post(&semaphore_servo_actuator);
+    sem_post(&semaphore_servo_shoot);
+   
+    
+    pthread_exit((void *)0);
+}
+
+
 Points_t detectFaceOpenCVLBP(cv::CascadeClassifier faceCascade, cv::Mat &frameGray, int inHeight = 300, int inWidth = 0)
 {
     std::vector<cv::Rect> faces;
@@ -211,6 +265,7 @@ Points_t detectFaceOpenCVLBP(cv::CascadeClassifier faceCascade, cv::Mat &frameGr
 
 void *FaceDetectService(void *args)
 {
+    
     RmTask_t *task_parameters = (RmTask_t *)args;
 
     struct sched_param schedule_param;
@@ -244,7 +299,7 @@ void *FaceDetectService(void *args)
 
     while (!exit_flag)
     {
-
+        sem_wait(&semaphore_face_detect);
         read_time(&face_recognition_start_ms);
 
         source >> frame;
@@ -410,7 +465,7 @@ void *ServoActuatorService(void *args)
                 servo_actuation_deadline_miss++;
             }
 
-            sem_post(&semaphore_servo_shoot);
+
         }
     } while (!exit_flag);
     printf("Servo Actuation service ended !\n\r");
@@ -446,6 +501,7 @@ void *ServoShootService(void *args)
     int degree = 0;
     do
     {
+        
 
         sem_wait(&semaphore_servo_shoot);
 
